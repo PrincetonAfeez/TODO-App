@@ -1,0 +1,29 @@
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+src = ["config", "tasks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "DJ"]
+ignore = ["DJ001"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = ["test_*.py", "*_test.py", "tests.py", "tests_e2e.py"]
+addopts = "-q"
+markers = [
+    "e2e: browser integration tests (Playwright)",
+]
+
+[tool.coverage.run]
+source = ["tasks"]
+omit = ["tasks/migrations/*", "tasks/tests.py", "tasks/tests_e2e.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+
