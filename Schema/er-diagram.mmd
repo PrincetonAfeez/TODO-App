@@ -1,0 +1,53 @@
+erDiagram
+    TASK_LIST ||--o{ TASK : owns
+    TASK ||--o{ TASK : has_subtasks
+    RECURRENCE ||--o{ TASK : templates
+    TASK ||--o{ TASK : spawns
+    TASK_LIST ||--o{ TASK_EVENT : filters
+    TASK ||--o{ TASK_EVENT : records
+
+    TASK_LIST {
+      bigint id PK
+      string name
+      string session_key UK
+      datetime created_at
+      datetime updated_at
+    }
+
+    RECURRENCE {
+      bigint id PK
+      string frequency
+      int interval
+      int weekday_mask
+      int day_of_month
+      date end_date
+      datetime created_at
+    }
+
+    TASK {
+      bigint id PK
+      bigint task_list_id FK
+      bigint parent_id FK
+      string title
+      text notes
+      datetime due_date
+      string status
+      string priority
+      int order
+      bigint recurrence_id FK
+      bigint spawned_from_id FK
+      datetime completed_at
+      datetime created_at
+      datetime updated_at
+      datetime deleted_at
+    }
+
+    TASK_EVENT {
+      bigint id PK
+      bigint task_id FK
+      bigint task_list_id FK
+      string session_key
+      string action
+      json changes
+      datetime created_at
+    }

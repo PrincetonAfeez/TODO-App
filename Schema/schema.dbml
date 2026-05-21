@@ -1,0 +1,78 @@
+Project todo_app_schema {
+  database_type: 'PostgreSQL'
+  Note: 'Reference schema for the Django TODO-App. Django migrations remain the source of truth.'
+}
+
+Table tasks_tasklist {
+  id bigint [pk, increment]
+  name varchar(120) [not null]
+  session_key varchar(80) [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (session_key, name) [unique, name: 'unique_task_list_name_per_session']
+    session_key
+  }
+}
+
+Table tasks_recurrence {
+  id bigint [pk, increment]
+  frequency varchar(12) [not null, note: 'daily, weekly, monthly']
+  interval int [not null, default: 1]
+  weekday_mask smallint [note: 'Optional weekly mask, 1-127']
+  day_of_month smallint [note: 'Optional monthly day, 1-31']
+  end_date date
+  created_at timestamptz [not null]
+}
+
+Table tasks_task {
+  id bigint [pk, increment]
+  task_list_id bigint [not null]
+  parent_id bigint
+  title varchar(255) [not null]
+  notes text [not null, default: '']
+  due_date timestamptz
+  status varchar(8) [not null, default: 'open', note: 'open, done']
+  priority varchar(8) [not null, default: 'medium', note: 'low, medium, high']
+  order int [not null, default: 0]
+  recurrence_id bigint
+  spawned_from_id bigint
+  completed_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  deleted_at timestamptz
+
+  indexes {
+    task_list_id
+    parent_id
+    status
+    due_date
+    deleted_at
+    (task_list_id, parent_id, order)
+  }
+}
+
+Table tasks_taskevent {
+  id bigint [pk, increment]
+  task_id bigint
+  task_list_id bigint
+  session_key varchar(80) [not null]
+  action varchar(20) [not null, note: 'created, updated, completed, reopened, soft_deleted, restored, reordered, spawned']
+  changes jsonb [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    session_key
+    created_at
+    task_id
+    task_list_id
+  }
+}
+
+Ref: tasks_tasklist.id < tasks_task.task_list_id [delete: cascade]
+Ref: tasks_task.id < tasks_task.parent_id [delete: cascade]
+Ref: tasks_recurrence.id < tasks_task.recurrence_id [delete: set null]
+Ref: tasks_task.id < tasks_task.spawned_from_id [delete: set null]
+Ref: tasks_task.id < tasks_taskevent.task_id [delete: set null]
+Ref: tasks_tasklist.id < tasks_taskevent.task_list_id [delete: set null]
