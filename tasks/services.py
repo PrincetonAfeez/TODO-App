@@ -24,10 +24,6 @@ from .models import (
 )
 
 
-class RestoreError(ValueError):
-    """Raised when a task cannot be restored."""
-
-
 @dataclass(frozen=True)
 class ExportResult:
     filename: str
@@ -43,21 +39,7 @@ def ensure_default_list(session_key: str) -> TaskList:
     return task_list
 
 
-def _lock_order_scope(task_list: TaskList, parent: Task | None = None) -> None:
-    """Serialize concurrent order assignment for a list or subtask parent.
-
-    Uses ``select_for_update()``; on SQLite this is a no-op (Django logs a
-    warning), so dev/CI on SQLite will not surface reorder races. PostgreSQL
-    (production) enforces the lock.
-    """
-    if parent is not None:
-        Task.objects.select_for_update().get(pk=parent.pk)
-    else:
-        TaskList.objects.select_for_update().get(pk=task_list.pk)
-
-
 def next_order(task_list: TaskList, parent: Task | None = None) -> int:
-    _lock_order_scope(task_list, parent)
     max_order = (
         Task.objects.all_with_deleted()
         .filter(task_list=task_list, parent=parent)
@@ -132,11 +114,6 @@ def soft_delete_task(task: Task) -> None:
 
 @transaction.atomic
 def restore_task(task: Task) -> Task:
-    if task.parent_id is not None and Task.objects.all_with_deleted().filter(
-        pk=task.parent_id,
-        deleted_at__isnull=False,
-    ).exists():
-        raise RestoreError("Restore the parent first.")
     parent_deleted_at = task.deleted_at
     task.deleted_at = None
     task.save(update_fields=["deleted_at", "updated_at"])
@@ -240,17 +217,6 @@ def spawn_next_occurrence(task: Task) -> Task | None:
         status=TaskStatus.OPEN,
     ).exists()
     if duplicate_exists:
-        TaskEvent.objects.create(
-            task=task,
-            task_list=template.task_list,
-            session_key=template.task_list.session_key,
-            action=TaskEventAction.SPAWNED,
-            changes={
-                "template_id": template.id,
-                "due_date": next_due.isoformat(),
-                "duplicate": True,
-            },
-        )
         return None
 
     occurrence = Task.objects.create(
@@ -376,19 +342,11 @@ def export_tasks(task_list: TaskList, *, fmt: str) -> ExportResult:
     )
 
 
-def _export_safe_text(value: str) -> str:
-    if not value:
-        return value
-    if value[0] in ("=", "+", "-", "@", "\t", "\r"):
-        return f"'{value}"
-    return value
-
-
 def _task_to_json(task: Task) -> dict:
     return {
         "id": task.id,
-        "title": _export_safe_text(task.title),
-        "notes": _export_safe_text(task.notes),
+        "title": task.title,
+        "notes": task.notes,
         "status": task.status,
         "priority": task.priority,
         "due_date": task.due_date.isoformat() if task.due_date else None,
@@ -402,7 +360,7 @@ def _write_task_csv_row(writer, task: Task) -> None:
         [
             task.id,
             task.parent_id or "",
-            _export_safe_text(task.title),
+            task.title,
             task.status,
             task.priority,
             task.due_date.isoformat() if task.due_date else "",

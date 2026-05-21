@@ -1513,9 +1513,8 @@ def test_save_without_changes_emits_no_updated_event(task_list):
 def test_capture_old_task_values_when_previous_row_missing(task_list):
     task = services.create_task(task_list=task_list, title="Missing old")
     with patch.object(Task.objects, "all_with_deleted") as mock_manager:
-        mock_manager.return_value.filter.return_value.values.return_value.first.return_value = (
-            None
-        )
+        mock_chain = mock_manager.return_value.filter.return_value.values.return_value
+        mock_chain.first.return_value = None
         task.title = "Updated title"
         task.save(update_fields=["title", "updated_at"])
 

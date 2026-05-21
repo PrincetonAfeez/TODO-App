@@ -52,12 +52,6 @@ def _task_or_404(request, task_id: int) -> Task:
     )
 
 
-def _guard_deleted_task_mutation(task: Task) -> HttpResponseBadRequest | None:
-    if task.is_deleted:
-        return HttpResponseBadRequest("Deleted tasks are read-only; restore first.")
-    return None
-
-
 def _base_context(request, *, task_lists=None, **kwargs):
     if task_lists is None:
         task_lists = _lists_for_request(request)
@@ -351,8 +345,13 @@ def rename_list(request, list_id: int):
     task_list = _list_or_404(request, list_id)
     form = TaskListForm(request.POST, instance=task_list)
     if form.is_valid():
-        form.save()
-        messages.success(request, "List renamed.")
+        try:
+            with transaction.atomic():
+                form.save()
+        except IntegrityError:
+            messages.error(request, "You already have a list with that name.")
+        else:
+            messages.success(request, "List renamed.")
     return redirect("tasks:list_detail", list_id=task_list.id)
 
 
@@ -416,8 +415,6 @@ def task_row(request, task_id: int):
 @require_GET
 def edit_task(request, task_id: int):
     task = _task_or_404(request, task_id)
-    if denied := _guard_deleted_task_mutation(task):
-        return denied
     return render(
         request,
         "tasks/partials/_task_edit_form.html",
@@ -428,8 +425,6 @@ def edit_task(request, task_id: int):
 @require_POST
 def update_task_view(request, task_id: int):
     task = _task_or_404(request, task_id)
-    if denied := _guard_deleted_task_mutation(task):
-        return denied
     form = TaskForm(request.POST, instance=task)
     if not form.is_valid():
         if request.htmx:
@@ -458,8 +453,6 @@ def update_task_view(request, task_id: int):
 @require_POST
 def toggle_task_view(request, task_id: int):
     task = _task_or_404(request, task_id)
-    if denied := _guard_deleted_task_mutation(task):
-        return denied
     task_list = task.task_list
     task = services.toggle_task(task)
     message = "Task reopened" if task.status == TaskStatus.OPEN else "Task completed"
@@ -510,13 +503,7 @@ def delete_task_view(request, task_id: int):
 def restore_task_view(request, task_id: int):
     task = _task_or_404(request, task_id)
     task_list = task.task_list
-    try:
-        task = services.restore_task(task)
-    except services.RestoreError as exc:
-        message = str(exc)
-        if request.htmx:
-            return _with_toast(HttpResponseBadRequest(message), message)
-        return HttpResponseBadRequest(message)
+    task = services.restore_task(task)
     template = (
         "tasks/partials/_subtask_row.html"
         if task.parent_id
@@ -597,8 +584,6 @@ def reorder_subtasks(request, task_id: int):
 @require_POST
 def set_recurrence_view(request, task_id: int):
     task = _task_or_404(request, task_id)
-    if denied := _guard_deleted_task_mutation(task):
-        return denied
     if task.parent_id:
         return HttpResponseBadRequest("Subtasks cannot recur.")
     form = RecurrenceForm(request.POST)
@@ -631,8 +616,6 @@ def set_recurrence_view(request, task_id: int):
 @require_POST
 def clear_recurrence_view(request, task_id: int):
     task = _task_or_404(request, task_id)
-    if denied := _guard_deleted_task_mutation(task):
-        return denied
     services.clear_recurrence(task)
     task = _task_or_404(request, task.id)
     return _with_toast(

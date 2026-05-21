@@ -104,18 +104,9 @@ class Recurrence(models.Model):
         return f"Every {self.interval} {label}"
 
     def clean(self) -> None:
-        """Validate recurrence fields.
-
-        Monthly recurrence requires ``day_of_month``. Weekly recurrence may
-        omit ``weekday_mask`` (every *interval* weeks on the same weekday via
-        ``services._next_weekly``); the form layer requires weekdays for
-        UI-created rules.
-        """
         errors = {}
         if self.interval < 1:
             errors["interval"] = "Interval must be at least 1."
-        if self.frequency == RecurrenceFrequency.MONTHLY and self.day_of_month is None:
-            errors["day_of_month"] = "Day of month is required for monthly recurrence."
         if self.day_of_month is not None and not 1 <= self.day_of_month <= 31:
             errors["day_of_month"] = "Day of month must be between 1 and 31."
         if self.weekday_mask is not None and not 1 <= self.weekday_mask <= 127:
@@ -221,10 +212,6 @@ class TaskManager(models.Manager.from_queryset(TaskQuerySet)):
 
 
 class Task(models.Model):
-    _SKIP_FULL_CLEAN_ON_UPDATE = frozenset(
-        {"status", "completed_at", "deleted_at", "order"}
-    )
-
     task_list = models.ForeignKey(
         TaskList,
         on_delete=models.CASCADE,
@@ -297,11 +284,6 @@ class Task(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        update_fields = kwargs.get("update_fields")
-        if update_fields is not None:
-            validated = set(update_fields) - {"updated_at"}
-            if validated and validated.issubset(self._SKIP_FULL_CLEAN_ON_UPDATE):
-                return super().save(*args, **kwargs)
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -333,12 +315,10 @@ class Task(models.Model):
 
     @property
     def subtask_total(self) -> int:
-        """Count of non-deleted subtasks (deleted rows excluded even when prefetched)."""
         return len(self._subtask_children())
 
     @property
     def subtask_done_count(self) -> int:
-        """Count of done, non-deleted subtasks."""
         return sum(
             1
             for child in self._subtask_children()

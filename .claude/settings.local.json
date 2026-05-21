@@ -3,7 +3,12 @@
     "allow": [
       "WebFetch(domain:3.4.0.17)",
       "WebFetch(domain:cdn.tailwindcss.com)",
-      "Bash(xargs grep -l \"test_\")"
+      "Bash(xargs grep -l \"test_\")",
+      "Bash(.venv/Scripts/python -m pytest -m \"not e2e\")",
+      "Bash(.venv/Scripts/python -m ruff check .)",
+      "Bash(git stash *)",
+      "Bash(.venv/Scripts/python -m ruff check . --fix)",
+      "Bash(.venv/Scripts/python -m pytest -m \"not e2e\" --collect-only)"
     ]
   }
 }

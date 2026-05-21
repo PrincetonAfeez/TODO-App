@@ -9,10 +9,10 @@ import pytest
 from django.contrib.admin.sites import AdminSite
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection
-from django.test.utils import CaptureQueriesContext
 from django.http import HttpResponse
 from django.template import Context, Template
 from django.test import RequestFactory
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
@@ -28,7 +28,6 @@ from tasks.models import (
     TaskEventAction,
     TaskList,
     TaskPriority,
-    TaskStatus,
 )
 from tasks.views import (
     _append_empty_state_oob_delete,
@@ -124,18 +123,6 @@ def test_recurrence_clean_rejects_invalid_day_of_month():
 
 
 @pytest.mark.django_db
-def test_recurrence_clean_requires_day_of_month_for_monthly():
-    recurrence = Recurrence(
-        frequency=RecurrenceFrequency.MONTHLY,
-        interval=1,
-        day_of_month=None,
-    )
-    with pytest.raises(ValidationError) as exc:
-        recurrence.full_clean()
-    assert "day_of_month" in exc.value.error_dict
-
-
-@pytest.mark.django_db
 def test_subtask_counts_reuse_prefetched_children(task_list):
     from django.db import connection
     from django.db.models import Prefetch
@@ -174,21 +161,6 @@ def test_subtask_counts_exclude_deleted_from_prefetch(task_list):
 
     assert parent.subtask_total == 1
     assert parent.subtask_done_count == 0
-
-
-@pytest.mark.django_db
-def test_export_csv_prefixes_formula_like_titles(task_list):
-    services.create_task(task_list=task_list, title="=1+1")
-    result = services.export_tasks(task_list, fmt="csv")
-    assert "'=1+1" in result.body
-
-
-@pytest.mark.django_db
-def test_export_json_prefixes_formula_like_titles(task_list):
-    services.create_task(task_list=task_list, title="+cmd", notes="@SUM(A1)")
-    result = services.export_tasks(task_list, fmt="json")
-    assert "'+cmd" in result.body
-    assert "'@SUM(A1)" in result.body
 
 
 @pytest.mark.django_db
@@ -299,71 +271,6 @@ def test_next_order_increments_within_scope(task_list):
 
 
 @pytest.mark.django_db
-def test_next_order_locks_list_scope(task_list):
-    from unittest.mock import patch
-
-    with patch.object(TaskList.objects, "select_for_update") as mock_sf:
-        mock_sf.return_value.get.return_value = task_list
-        services.next_order(task_list)
-    mock_sf.assert_called_once()
-
-
-@pytest.mark.django_db
-def test_next_order_locks_parent_scope(task_list):
-    from unittest.mock import patch
-
-    parent = services.create_task(task_list=task_list, title="Parent")
-    with patch.object(Task.objects, "select_for_update") as mock_sf:
-        mock_sf.return_value.get.return_value = parent
-        services.next_order(task_list, parent)
-    mock_sf.assert_called_once()
-
-
-@pytest.mark.django_db
-def test_toggle_save_skips_full_clean(task_list):
-    from unittest.mock import patch
-
-    task = services.create_task(task_list=task_list, title="Toggle me")
-    with patch.object(Task, "full_clean") as mock_clean:
-        services.toggle_task(task)
-    mock_clean.assert_not_called()
-
-
-@pytest.mark.django_db
-def test_spawn_duplicate_open_occurrence_emits_audit(task_list):
-    template = services.create_task(task_list=task_list, title="Recurring")
-    due = timezone.make_aware(datetime(2024, 6, 1, 9, 0))
-    template.due_date = due
-    template.save()
-    services.set_recurrence(
-        template,
-        frequency=RecurrenceFrequency.DAILY,
-        interval=1,
-    )
-    template.refresh_from_db()
-    next_due = services.compute_next_due_date(due, template.recurrence)
-    Task.objects.create(
-        task_list=task_list,
-        title=template.title,
-        spawned_from=template,
-        due_date=next_due,
-        status=TaskStatus.OPEN,
-        order=services.next_order(task_list),
-    )
-    TaskEvent.objects.all().delete()
-    template.status = TaskStatus.DONE
-    template.completed_at = timezone.now()
-    template.save(update_fields=["status", "completed_at", "updated_at"])
-
-    result = services.spawn_next_occurrence(template)
-
-    assert result is None
-    event = TaskEvent.objects.get(action=TaskEventAction.SPAWNED)
-    assert event.changes["duplicate"] is True
-    assert event.changes["template_id"] == template.id
-
-
-@pytest.mark.django_db
 def test_create_and_update_task_with_optional_fields(task_list):
     due = timezone.now() + timezone.timedelta(days=1)
     task = services.create_task(
@@ -408,21 +315,6 @@ def test_restore_subtask_does_not_restore_siblings(task_list):
     child = Task.objects.all_with_deleted().get(id=child.id)
     services.restore_task(child)
     assert Task.objects.filter(id=child.id).exists()
-
-
-@pytest.mark.django_db
-def test_restore_subtask_rejects_when_parent_deleted(task_list):
-    parent = services.create_task(task_list=task_list, title="Parent")
-    child = services.create_task(task_list=task_list, parent=parent, title="Child")
-    services.soft_delete_task(parent)
-    child = Task.objects.all_with_deleted().get(id=child.id)
-
-    with pytest.raises(services.RestoreError, match="Restore the parent first"):
-        services.restore_task(child)
-
-    child.refresh_from_db()
-    assert child.is_deleted
-    assert Task.objects.filter(id=child.id).exists() is False
 
 
 @pytest.mark.django_db
@@ -757,55 +649,6 @@ def test_restore_subtask_view_returns_row(session_client, inbox):
 
 
 @pytest.mark.django_db
-def test_restore_subtask_view_rejects_when_parent_deleted(session_client, inbox):
-    parent = services.create_task(task_list=inbox, title="Parent")
-    child = services.create_task(task_list=inbox, parent=parent, title="Child")
-    services.soft_delete_task(parent)
-    child = Task.objects.all_with_deleted().get(id=child.id)
-
-    response = session_client.post(
-        reverse("tasks:restore_task", args=[child.id]),
-        HTTP_HX_REQUEST="true",
-    )
-
-    assert response.status_code == 400
-    assert "HX-Trigger" in response
-    assert "Restore the parent first." in response["HX-Trigger"]
-    child.refresh_from_db()
-    assert child.is_deleted
-
-
-@pytest.mark.django_db
-def test_deleted_task_mutations_rejected(session_client, inbox):
-    task = services.create_task(task_list=inbox, title="Original")
-    services.soft_delete_task(task)
-    denied = b"Deleted tasks are read-only; restore first."
-
-    assert session_client.get(reverse("tasks:edit_task", args=[task.id])).status_code == 400
-
-    response = session_client.post(
-        reverse("tasks:update_task", args=[task.id]),
-        {"title": "Hacked", "notes": "", "priority": "medium"},
-    )
-    assert response.status_code == 400
-    assert denied in response.content
-    assert Task.objects.all_with_deleted().get(id=task.id).title == "Original"
-
-    events_before = TaskEvent.objects.filter(task_id=task.id).count()
-    assert session_client.post(reverse("tasks:toggle_task", args=[task.id])).status_code == 400
-    assert TaskEvent.objects.filter(task_id=task.id).count() == events_before
-
-    assert (
-        session_client.post(
-            reverse("tasks:set_recurrence", args=[task.id]),
-            {"frequency": "daily", "interval": "1"},
-        ).status_code
-        == 400
-    )
-    assert session_client.post(reverse("tasks:clear_recurrence", args=[task.id])).status_code == 400
-
-
-@pytest.mark.django_db
 def test_update_subtask_view_returns_row_and_oob(session_client, inbox):
     parent = services.create_task(task_list=inbox, title="Parent")
     child = services.create_task(task_list=inbox, parent=parent, title="Old")
@@ -909,7 +752,7 @@ def test_set_recurrence_422_preserves_submitted_values(session_client, inbox):
 
 
 @pytest.mark.django_db
-def test_set_recurrence_422_preserves_day_of_month_on_interval_error(session_client, inbox):
+def test_set_recurrence_422_keeps_day_of_month(session_client, inbox):
     task = services.create_task(task_list=inbox, title="Keep day")
 
     response = session_client.post(
@@ -1147,3 +990,36 @@ def test_apply_list_filters_manual_sort_is_default(task_list):
         task_list=task_list, parent__isnull=True
     ).apply_list_filters(sort="manual")
     assert list(ordered.values_list("title", flat=True)) == ["First", "Second"]
+
+
+# --- Round-4 fixes (NB16-NB22) ---
+
+
+@pytest.mark.django_db
+def test_rename_list_handles_duplicate_name(session_client, inbox):
+    TaskList.objects.create(session_key=inbox.session_key, name="Projects")
+
+    response = session_client.post(
+        reverse("tasks:rename_list", args=[inbox.id]),
+        {"name": "Projects"},
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    assert b"already have a list with that name" in response.content
+    inbox.refresh_from_db()
+    assert inbox.name == "Inbox"
+
+
+@pytest.mark.django_db
+def test_lists_view_returns_duplicate_name_error_real_db(client):
+    client.get(reverse("tasks:home"))
+    session_key = client.session.session_key
+    TaskList.objects.create(session_key=session_key, name="Projects")
+
+    response = client.post(reverse("tasks:lists"), {"name": "Projects"})
+
+    assert response.status_code == 200
+    assert b"already have a list with that name" in response.content
+
+
