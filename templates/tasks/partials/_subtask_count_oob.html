@@ -1,0 +1,5 @@
+<span
+  id="subtask-count-{{ task.id }}"
+  hx-swap-oob="true"
+  class="rounded bg-stone-100 px-1.5 py-0.5 text-xs text-stone-600 dark:bg-zinc-800 dark:text-stone-300{% if not task.subtask_total %} hidden{% endif %}"
+>{{ task.subtask_done_count }}/{{ task.subtask_total }}</span>

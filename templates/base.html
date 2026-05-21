@@ -1,0 +1,66 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}To-Do{% endblock %}</title>
+  <script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = { darkMode: 'class' };
+    (function () {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (!tz) return;
+      var saved = document.cookie.match(/(?:^|; )timezone=([^;]+)/);
+      var current = saved ? decodeURIComponent(saved[1]) : '';
+      if (current !== tz) {
+        document.cookie = 'timezone=' + encodeURIComponent(tz) + '; path=/; max-age=31536000; SameSite=Lax';
+      }
+    })();
+  </script>
+  <script src="{% static 'tasks/theme-helpers.js' %}"></script>
+  <script>
+    window.TodoThemeHelpers.initThemeFromCookie();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+  <script src="{% static 'tasks/toggle-helpers.js' %}"></script>
+  <script defer src="{% static 'tasks/app.js' %}"></script>
+</head>
+<body class="min-h-screen bg-stone-50 text-stone-950 antialiased dark:bg-zinc-950 dark:text-stone-100" hx-indicator="#htmx-progress">
+  <div id="htmx-progress" class="htmx-indicator pointer-events-none fixed inset-x-0 top-0 z-50 h-1 bg-emerald-500 opacity-0 transition-opacity duration-200" aria-hidden="true"></div>
+  <div class="min-h-screen">
+    <header class="sticky top-0 z-30 border-b border-stone-200 bg-stone-50/95 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+        <a href="{% url 'tasks:home' %}" class="flex items-center gap-2 text-base font-semibold">
+          <span class="grid h-8 w-8 place-items-center rounded-md bg-emerald-600 text-white">
+            <i data-lucide="check-check" class="h-4 w-4"></i>
+          </span>
+          <span>To-Do</span>
+        </a>
+        <nav class="flex items-center gap-2">
+          <a href="{% url 'tasks:events' %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+            <i data-lucide="activity" class="h-4 w-4"></i>
+            Events
+          </a>
+          {% include "tasks/partials/_keyboard_shortcuts_dialog.html" %}
+          {% include "tasks/partials/_dark_mode_toggle.html" %}
+        </nav>
+      </div>
+    </header>
+    {% if messages %}
+      <div class="mx-auto max-w-7xl space-y-2 px-4 pt-3">
+        {% for message in messages %}
+          <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+  <div id="toast-region" class="fixed bottom-4 right-4 z-50 space-y-2" role="status" aria-live="polite" aria-atomic="true" aria-relevant="additions"></div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{% load task_extras %}
+<div id="recurrence-form-{{ task.id }}" class="mt-2 rounded-md border border-stone-200 bg-stone-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+  {% if task.recurrence %}
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-stone-600 dark:text-stone-300">
+      <span>{{ task.recurrence }}</span>
+      <form hx-post="{% url 'tasks:clear_recurrence' task.id %}" hx-target="#recurrence-form-{{ task.id }}" hx-swap="outerHTML">
+        {% csrf_token %}
+        <button class="inline-flex h-7 items-center gap-1 rounded-md border border-stone-300 px-2 font-medium hover:bg-white dark:border-zinc-700 dark:hover:bg-zinc-800">
+          <i data-lucide="x" class="h-3.5 w-3.5"></i>
+          Clear
+        </button>
+      </form>
+    </div>
+  {% endif %}
+  <form
+    class="grid gap-2 lg:grid-cols-[8rem_7rem_minmax(10rem,1fr)_8rem_8rem_auto]"
+    hx-post="{% url 'tasks:set_recurrence' task.id %}"
+    hx-target="#recurrence-form-{{ task.id }}"
+    hx-swap="outerHTML"
+    data-recurrence-form
+  >
+    {% csrf_token %}
+    <select name="frequency" data-recurrence-frequency class="h-8 rounded-md border border-stone-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-900">
+      <option value="daily" {% if form.is_bound %}{% if form.frequency.value == "daily" %}selected{% endif %}{% elif task.recurrence.frequency == "daily" %}selected{% endif %}>Daily</option>
+      <option value="weekly" {% if form.is_bound %}{% if form.frequency.value == "weekly" %}selected{% endif %}{% elif task.recurrence.frequency == "weekly" %}selected{% endif %}>Weekly</option>
+      <option value="monthly" {% if form.is_bound %}{% if form.frequency.value == "monthly" %}selected{% endif %}{% elif task.recurrence.frequency == "monthly" %}selected{% endif %}>Monthly</option>
+    </select>
+    <input
+      name="interval"
+      type="number"
+      min="1"
+      value="{% if form.is_bound %}{{ form.interval.value }}{% else %}{{ task.recurrence.interval|default:1 }}{% endif %}"
+      class="h-8 rounded-md border border-stone-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+    >
+    <fieldset data-weekday-fields class="flex flex-wrap gap-1">
+      <label class="inline-flex items-center gap-1 rounded border border-stone-300 px-1.5 py-1 text-xs dark:border-zinc-700"><input type="checkbox" name="weekdays" value="1" {% weekday_selected form task.recurrence 1 as on_1 %}{% if on_1 %}checked{% endif %}>Mon</label>
+      <label class="inline-flex items-center gap-1 rounded border border-stone-300 px-1.5 py-1 text-xs dark:border-zinc-700"><input type="checkbox" name="weekdays" value="2" {% weekday_selected form task.recurrence 2 as on_2 %}{% if on_2 %}checked{% endif %}>Tue</label>
+      <label class="inline-flex items-center gap-1 rounded border border-stone-300 px-1.5 py-1 text-xs dark:border-zinc-700"><input type="checkbox" name="weekdays" value="4" {% weekday_selected form task.recurrence 4 as on_4 %}{% if on_4 %}checked{% endif %}>Wed</label>
+      <label class="inline-flex items-center gap-1 rounded border border-stone-300 px-1.5 py-1 text-xs dark:border-zinc-700"><input type="checkbox" name="weekdays" value="8" {% weekday_selected form task.recurrence 8 as on_8 %}{% if on_8 %}checked{% endif %}>Thu</label>
+      <label class="inline-flex items-center gap-1 rounded border border-stone-300 px-1.5 py-1 text-xs dark:border-zinc-700"><input type="checkbox" name="weekdays" value="16" {% weekday_selected form task.recurrence 16 as on_16 %}{% if on_16 %}checked{% endif %}>Fri</label>
+      <label class="inline-flex items-center gap-1 rounded border border-stone-300 px-1.5 py-1 text-xs dark:border-zinc-700"><input type="checkbox" name="weekdays" value="32" {% weekday_selected form task.recurrence 32 as on_32 %}{% if on_32 %}checked{% endif %}>Sat</label>
+      <label class="inline-flex items-center gap-1 rounded border border-stone-300 px-1.5 py-1 text-xs dark:border-zinc-700"><input type="checkbox" name="weekdays" value="64" {% weekday_selected form task.recurrence 64 as on_64 %}{% if on_64 %}checked{% endif %}>Sun</label>
+    </fieldset>
+    <input
+      data-monthday-field
+      name="day_of_month"
+      type="number"
+      min="1"
+      max="31"
+      value="{% if form.is_bound %}{{ form.day_of_month.value|default_if_none:'' }}{% else %}{{ task.recurrence.day_of_month|default:'' }}{% endif %}"
+      placeholder="Day"
+      class="h-8 rounded-md border border-stone-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+    >
+    <input
+      name="end_date"
+      type="date"
+      value="{% if form.is_bound %}{{ form.data.end_date|default:'' }}{% elif task.recurrence.end_date %}{{ task.recurrence.end_date|date:'Y-m-d' }}{% endif %}"
+      class="h-8 rounded-md border border-stone-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+    >
+    <button class="inline-flex h-8 items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700">
+      <i data-lucide="repeat-2" class="h-3.5 w-3.5"></i>
+      Save
+    </button>
+  </form>
+  {% if form and form.errors %}
+    {% include "tasks/partials/_form_errors.html" with form=form error_id="recurrence-form-errors" %}
+  {% endif %}
+</div>

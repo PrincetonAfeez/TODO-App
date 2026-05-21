@@ -6,7 +6,7 @@ run:
 	$(PYTHON) manage.py runserver
 
 test:
-	$(PYTHON) -m pytest
+	$(PYTHON) -m pytest -m "not e2e"
 
 cov:
 	$(PYTHON) -m pytest --cov=tasks --cov-report=term-missing

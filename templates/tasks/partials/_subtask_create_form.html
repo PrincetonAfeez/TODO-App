@@ -1,0 +1,25 @@
+<form
+  id="subtask-form-{{ task.id }}"
+  class="grid gap-2 border-t border-stone-100 bg-stone-50 p-3 dark:border-zinc-800 dark:bg-zinc-950 sm:grid-cols-[1fr_auto]"
+  hx-post="{% url 'tasks:create_subtask' task.id %}"
+  hx-target="#task-group-{{ task.id }} .subtask-list"
+  hx-swap="beforeend"
+>
+  {% csrf_token %}
+  {% include "tasks/partials/_form_errors.html" with form=form error_id="subtask-form-errors" field_label_prefix=1 %}
+  <input
+    name="title"
+    placeholder="Subtask"
+    autocomplete="off"
+    value="{{ form.title.value|default_if_none:'' }}"
+    class="h-9 min-w-0 rounded-md border bg-white px-3 text-sm dark:bg-zinc-900 {% if form.title.errors %}border-red-500 ring-1 ring-red-500 dark:border-red-500{% else %}border-stone-300 dark:border-zinc-700{% endif %}"
+    {% if form.title.errors %}aria-invalid="true" aria-describedby="subtask-form-errors"{% endif %}
+  >
+  <input type="hidden" name="notes" value="">
+  <input type="hidden" name="priority" value="medium">
+  <input type="hidden" name="due_date" value="">
+  <button type="submit" class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-white dark:border-zinc-700 dark:hover:bg-zinc-800">
+    <i data-lucide="corner-down-right" class="h-4 w-4" aria-hidden="true"></i>
+    Add
+  </button>
+</form>

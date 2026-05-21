@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Events - To-Do{% endblock %}
+
+{% block content %}
+<main class="mx-auto grid max-w-7xl gap-6 px-4 py-6 md:grid-cols-[18rem_1fr]">
+  {% include "tasks/partials/_list_sidebar.html" %}
+  <section class="min-w-0 space-y-4">
+    <div class="flex flex-col gap-3 border-b border-stone-200 pb-4 dark:border-zinc-800 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold">Events</h1>
+        <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Session audit trail</p>
+      </div>
+      {# Filter submit omits page; returning to page 1 on filter change is intentional. #}
+      <form class="flex flex-wrap gap-2" method="get">
+        <select name="action" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+          <option value="">Any action</option>
+          {% for value,label in actions %}
+            <option value="{{ value }}" {% if current_action == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <select name="list" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+          <option value="">Any list</option>
+          {% for list in task_lists %}
+            <option value="{{ list.id }}" {% if current_list_id == list.id|stringformat:"s" %}selected{% endif %}>{{ list.name }}</option>
+          {% endfor %}
+        </select>
+        <button class="inline-flex h-9 items-center gap-2 rounded-md bg-stone-900 px-3 text-sm font-medium text-white dark:bg-stone-100 dark:text-zinc-950">
+          <i data-lucide="filter" class="h-4 w-4"></i>
+          Apply
+        </button>
+      </form>
+    </div>
+
+    <div class="overflow-hidden rounded-md border border-stone-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <div class="grid grid-cols-[9rem_1fr_12rem] gap-3 border-b border-stone-200 px-4 py-2 text-xs font-semibold uppercase text-stone-500 dark:border-zinc-800 dark:text-stone-400">
+        <span>Action</span>
+        <span>Task</span>
+        <span>When</span>
+      </div>
+      {% for event in page.object_list %}
+        <div class="grid grid-cols-[9rem_1fr_12rem] gap-3 border-b border-stone-100 px-4 py-3 text-sm last:border-0 dark:border-zinc-800">
+          <span class="font-medium">{{ event.get_action_display }}</span>
+          <span class="min-w-0 truncate">
+            {% if event.task %}{{ event.task.title }}{% else %}{{ event.task_list.name|default:"List" }}{% endif %}
+          </span>
+          <time class="text-stone-500 dark:text-stone-400">{{ event.created_at|date:"M j, g:i A" }}</time>
+        </div>
+      {% empty %}
+        <div class="px-4 py-10 text-center text-sm text-stone-500 dark:text-stone-400">No events yet.</div>
+      {% endfor %}
+    </div>
+
+    {% if page.has_other_pages %}
+      <nav class="flex items-center justify-between text-sm">
+        {% if page.has_previous %}
+          <a class="rounded-md border border-stone-300 px-3 py-2 dark:border-zinc-700" href="?{% if events_filter_query %}{{ events_filter_query }}&{% endif %}page={{ page.previous_page_number }}">Previous</a>
+        {% else %}
+          <span></span>
+        {% endif %}
+        <span class="text-stone-500 dark:text-stone-400">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}
+          <a class="rounded-md border border-stone-300 px-3 py-2 dark:border-zinc-700" href="?{% if events_filter_query %}{{ events_filter_query }}&{% endif %}page={{ page.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}
+

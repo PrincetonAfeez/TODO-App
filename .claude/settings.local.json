@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:3.4.0.17)",
+      "WebFetch(domain:cdn.tailwindcss.com)",
+      "Bash(xargs grep -l \"test_\")"
+    ]
+  }
+}

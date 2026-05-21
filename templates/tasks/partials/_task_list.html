@@ -1,0 +1,15 @@
+<section id="task-list-frame" class="space-y-3">
+  <div
+    id="task-list"
+    class="space-y-2"
+    data-sortable-list
+    data-reorder-url="{% url 'tasks:reorder_tasks' current_list.id %}"
+  >
+    {% for task in tasks %}
+      {% include "tasks/partials/_task_group.html" with task=task %}
+    {% empty %}
+      {% include "tasks/partials/_empty_state.html" %}
+    {% endfor %}
+  </div>
+</section>
+

@@ -1,0 +1,46 @@
+<form
+  class="task-row grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_auto]"
+  hx-post="{% url 'tasks:update_task' task.id %}"
+  hx-target="this"
+  hx-swap="outerHTML"
+  data-edit-form
+>
+  {% csrf_token %}
+  {% include "tasks/partials/_form_errors.html" with form=form error_id="edit-task-form-errors" %}
+  <div class="grid gap-2">
+    <input
+      name="title"
+      required
+      value="{{ form.title.value|default:task.title }}"
+      autocomplete="off"
+      class="h-9 min-w-0 rounded-md border bg-white px-3 text-sm dark:bg-zinc-950 {% if form.title.errors %}border-red-500 ring-1 ring-red-500 dark:border-red-500{% else %}border-stone-300 dark:border-zinc-700{% endif %}"
+      {% if form.title.errors %}aria-invalid="true" aria-describedby="edit-task-form-errors"{% endif %}
+    >
+    <textarea name="notes" rows="2" class="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">{{ form.notes.value|default:task.notes }}</textarea>
+    <div class="grid gap-2 sm:grid-cols-2">
+      <input name="due_date" type="datetime-local" value="{% if form.data.due_date %}{{ form.data.due_date }}{% elif task.due_date %}{{ task.due_date|date:'Y-m-d\TH:i' }}{% endif %}" class="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <select name="priority" class="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <option value="low" {% if form.priority.value|default:task.priority == "low" %}selected{% endif %}>Low</option>
+        <option value="medium" {% if form.priority.value|default:task.priority == "medium" %}selected{% endif %}>Medium</option>
+        <option value="high" {% if form.priority.value|default:task.priority == "high" %}selected{% endif %}>High</option>
+      </select>
+    </div>
+  </div>
+  <div class="flex gap-1 md:justify-end">
+    <button type="submit" class="inline-flex h-9 items-center gap-2 rounded-md bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700">
+      <i data-lucide="save" class="h-4 w-4" aria-hidden="true"></i>
+      Save
+    </button>
+    <button
+      type="button"
+      data-cancel-edit
+      hx-get="{% url 'tasks:task_row' task.id %}"
+      hx-target="closest [data-edit-form]"
+      hx-swap="outerHTML"
+      class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+    >
+      <i data-lucide="x" class="h-4 w-4" aria-hidden="true"></i>
+      Cancel
+    </button>
+  </div>
+</form>

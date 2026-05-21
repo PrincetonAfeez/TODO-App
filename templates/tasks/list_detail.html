@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}{{ current_list.name }} - To-Do{% endblock %}
+
+{% block content %}
+<main class="mx-auto grid max-w-7xl gap-6 px-4 py-6 md:grid-cols-[18rem_1fr]">
+  {% include "tasks/partials/_list_sidebar.html" %}
+
+  <section class="min-w-0 space-y-4">
+    <div class="flex flex-col gap-3 border-b border-stone-200 pb-4 dark:border-zinc-800 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-normal">{{ current_list.name }}</h1>
+        <form method="post" action="{% url 'tasks:rename_list' current_list.id %}" class="mt-2 flex max-w-md gap-2">
+          {% csrf_token %}
+          <input name="name" value="{{ current_list.name }}" class="h-9 min-w-0 flex-1 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+          <button class="inline-flex h-9 items-center gap-2 rounded-md bg-stone-900 px-3 text-sm font-medium text-white hover:bg-stone-700 dark:bg-stone-100 dark:text-zinc-950 dark:hover:bg-white">
+            <i data-lucide="save" class="h-4 w-4"></i>
+            Rename
+          </button>
+        </form>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <a href="{% url 'tasks:export_csv' current_list.id %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+          <i data-lucide="file-down" class="h-4 w-4"></i>
+          CSV
+        </a>
+        <a href="{% url 'tasks:export_json' current_list.id %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+          <i data-lucide="braces" class="h-4 w-4"></i>
+          JSON
+        </a>
+        <form method="post" action="{% url 'tasks:delete_list' current_list.id %}" onsubmit="return confirm('Delete this list and all of its tasks?')">
+          {% csrf_token %}
+          <button class="inline-flex h-9 items-center gap-2 rounded-md border border-red-300 px-3 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40">
+            <i data-lucide="trash-2" class="h-4 w-4"></i>
+            Delete
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {% include "tasks/partials/_new_task_form.html" with form=task_form show_task_details=False due_date_value="" %}
+
+    <form
+      id="task-filters-form"
+      class="grid gap-2 rounded-md border border-stone-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900 sm:grid-cols-2 lg:grid-cols-[9rem_9rem_9rem_10rem_minmax(10rem,1fr)_auto]"
+      hx-get="{% url 'tasks:list_detail' current_list.id %}"
+      hx-target="#task-list-frame"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      hx-trigger="submit, change from:select, change from:input[type='checkbox'], keyup changed delay:400ms from:[name='q']"
+    >
+      <select name="view" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <option value="all" {% if filters.view == "all" %}selected{% endif %}>All</option>
+        <option value="today" {% if filters.view == "today" %}selected{% endif %}>Today</option>
+        <option value="upcoming" {% if filters.view == "upcoming" %}selected{% endif %}>Upcoming</option>
+        <option value="overdue" {% if filters.view == "overdue" %}selected{% endif %}>Overdue</option>
+      </select>
+      <select name="status" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <option value="">Any status</option>
+        {% for value,label in status_choices %}
+          <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="priority" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <option value="">Any priority</option>
+        {% for value,label in priority_choices %}
+          <option value="{{ value }}" {% if filters.priority == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="sort" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <option value="manual" {% if filters.sort == "manual" %}selected{% endif %}>Manual</option>
+        <option value="due_date" {% if filters.sort == "due_date" %}selected{% endif %}>Due date</option>
+        <option value="priority" {% if filters.sort == "priority" %}selected{% endif %}>Priority</option>
+        <option value="created_at" {% if filters.sort == "created_at" %}selected{% endif %}>Created</option>
+      </select>
+      <input name="q" value="{{ filters.q }}" data-search-input placeholder="Search" class="h-9 min-w-0 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <button type="submit" class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-stone-900 px-3 text-sm font-medium text-white hover:bg-stone-700 dark:bg-stone-100 dark:text-zinc-950">
+        <i data-lucide="filter" class="h-4 w-4"></i>
+        Apply
+      </button>
+      <label class="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-300">
+        <input type="checkbox" name="show_deleted" value="1" {% if show_deleted %}checked{% endif %} class="h-4 w-4 rounded border-stone-300 text-emerald-600">
+        Show deleted
+      </label>
+    </form>
+
+    {% include "tasks/partials/_task_list.html" %}
+  </section>
+</main>
+{% endblock %}
+

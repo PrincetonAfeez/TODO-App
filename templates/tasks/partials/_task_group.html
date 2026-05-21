@@ -1,0 +1,20 @@
+<article
+  id="task-group-{{ task.id }}"
+  class="task-group rounded-md border border-stone-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+  data-task-id="{{ task.id }}"
+>
+  {% include "tasks/partials/_task_row.html" with task=task %}
+  <div
+    class="subtask-list border-t border-stone-100 bg-stone-50/70 dark:border-zinc-800 dark:bg-zinc-950/50"
+    data-sortable-list
+    data-reorder-url="{% url 'tasks:reorder_subtasks' task.id %}"
+  >
+    {% for child in task.children.all %}
+      {% include "tasks/partials/_subtask_row.html" with task=child %}
+    {% endfor %}
+  </div>
+  {% if not task.is_deleted %}
+    {% include "tasks/partials/_subtask_create_form.html" with form=subtask_form task=task %}
+  {% endif %}
+</article>
+

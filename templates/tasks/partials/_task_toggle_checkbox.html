@@ -1,0 +1,17 @@
+<label
+  class="mt-1 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-stone-300 hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-800 {% if task.is_deleted %}cursor-not-allowed opacity-50{% endif %}"
+>
+  <input
+    type="checkbox"
+    class="h-4 w-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+    aria-label="{% if task.status == 'done' %}Reopen task{% else %}Complete task{% endif %}"
+    {% if task.status == "done" %}checked{% endif %}
+    {% if task.is_deleted %}disabled{% endif %}
+    data-optimistic-toggle
+    data-nav-focus
+    hx-post="{% url 'tasks:toggle_task' task.id %}"
+    hx-target="{{ toggle_target }}"
+    hx-swap="outerHTML"
+    hx-trigger="change"
+  >
+</label>

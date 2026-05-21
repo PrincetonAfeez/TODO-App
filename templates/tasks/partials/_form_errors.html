@@ -1,0 +1,16 @@
+{% if form.errors %}
+  <div
+    {% if error_id %}id="{{ error_id }}"{% endif %}
+    role="alert"
+    class="mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-100"
+  >
+    {% for field in form %}
+      {% for error in field.errors %}
+        <p>{% if field_label_prefix and field.name != "title" %}{{ field.label }}: {% endif %}{{ error }}</p>
+      {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
