@@ -218,7 +218,7 @@ def test_task_clean_rejects_nested_subtask(task_list):
 
 
 @pytest.mark.django_db
-def test_task_queryset_all_with_deleted_and_occurrences(task_list):
+def test_task_manager_all_with_deleted_and_occurrences(task_list):
     template = services.create_task(task_list=task_list, title="Template")
     services.set_recurrence(
         template,
@@ -229,7 +229,7 @@ def test_task_queryset_all_with_deleted_and_occurrences(task_list):
     occurrence = Task.objects.get(spawned_from=template)
 
     qs = Task.objects.filter(task_list=task_list)
-    assert qs.all_with_deleted().filter(id=template.id).exists()
+    assert Task.objects.all_with_deleted().filter(id=template.id).exists()
     assert qs.occurrences_of(template).get(id=occurrence.id).title == "Template"
 
 
@@ -1023,3 +1023,166 @@ def test_lists_view_returns_duplicate_name_error_real_db(client):
     assert b"already have a list with that name" in response.content
 
 
+# --- Academic review additions ---
+
+
+@pytest.mark.django_db
+def test_reorder_rejects_duplicate_ids(task_list):
+    a = services.create_task(task_list=task_list, title="A")
+    b = services.create_task(task_list=task_list, title="B")
+    with pytest.raises(ValueError, match="Duplicate"):
+        services.reorder_tasks(
+            task_list=task_list, ordered_ids=[a.id, b.id, a.id]
+        )
+
+
+@pytest.mark.django_db
+def test_reorder_view_rejects_duplicate_ids(session_client, inbox):
+    first = services.create_task(task_list=inbox, title="First")
+    second = services.create_task(task_list=inbox, title="Second")
+
+    response = session_client.post(
+        reverse("tasks:reorder_tasks", args=[inbox.id]),
+        {"order": f"{first.id},{second.id},{first.id}"},
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_list_detail_disables_reorder_when_filters_active(session_client, inbox):
+    services.create_task(task_list=inbox, title="One")
+
+    response = session_client.get(
+        reverse("tasks:list_detail", args=[inbox.id]),
+        {"sort": "due_date"},
+    )
+
+    assert response.status_code == 200
+    # When filters/sort are active the top-level #task-list keeps its id
+    # but loses the data-sortable-list hook; subtask-level sortables on
+    # task groups are unaffected.
+    assert b'id="task-list"\n    class="space-y-2"\n    \n' in response.content
+    assert b"Drag-and-drop reordering is disabled" in response.content
+
+
+@pytest.mark.django_db
+def test_list_detail_enables_reorder_in_default_view(session_client, inbox):
+    services.create_task(task_list=inbox, title="One")
+
+    response = session_client.get(reverse("tasks:list_detail", args=[inbox.id]))
+
+    assert response.status_code == 200
+    assert (
+        b'id="task-list"\n    class="space-y-2"\n    data-sortable-list'
+        in response.content
+    )
+    assert b"Drag-and-drop reordering is disabled" not in response.content
+
+
+@pytest.mark.django_db
+def test_restore_subtask_under_deleted_parent_is_rejected(task_list):
+    parent = services.create_task(task_list=task_list, title="Parent")
+    child = services.create_task(task_list=task_list, parent=parent, title="Child")
+    services.soft_delete_task(parent)
+    child = Task.objects.all_with_deleted().get(id=child.id)
+
+    with pytest.raises(services.RestoreError, match="Restore the parent first"):
+        services.restore_task(child)
+
+    assert Task.objects.all_with_deleted().get(id=child.id).is_deleted
+
+
+@pytest.mark.django_db
+def test_restore_subtask_view_rejects_when_parent_deleted(session_client, inbox):
+    parent = services.create_task(task_list=inbox, title="Parent")
+    child = services.create_task(task_list=inbox, parent=parent, title="Child")
+    services.soft_delete_task(parent)
+    child = Task.objects.all_with_deleted().get(id=child.id)
+
+    response = session_client.post(
+        reverse("tasks:restore_task", args=[child.id]),
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 400
+    assert "Restore the parent first." in response["HX-Trigger"]
+    assert Task.objects.all_with_deleted().get(id=child.id).is_deleted
+
+
+@pytest.mark.django_db
+def test_task_admin_queryset_includes_soft_deleted(task_list):
+    site = AdminSite()
+    task = services.create_task(task_list=task_list, title="Soft delete me")
+    services.soft_delete_task(task)
+
+    admin = TaskAdmin(Task, site)
+    queryset = admin.get_queryset(RequestFactory().get("/admin/"))
+
+    assert queryset.filter(id=task.id).exists()
+
+
+@pytest.mark.django_db
+def test_export_csv_includes_notes_and_recurrence(task_list):
+    task = services.create_task(
+        task_list=task_list,
+        title="Notes here",
+        notes="Body text",
+    )
+    services.set_recurrence(
+        task, frequency=RecurrenceFrequency.DAILY, interval=1
+    )
+
+    result = services.export_tasks(task_list, fmt="csv")
+
+    assert "Body text" in result.body
+    assert "daily" in result.body
+
+
+@pytest.mark.django_db
+def test_export_json_includes_recurrence_payload(task_list):
+    import json as _json
+
+    task = services.create_task(task_list=task_list, title="Recurring")
+    services.set_recurrence(
+        task,
+        frequency=RecurrenceFrequency.WEEKLY,
+        interval=2,
+        weekday_mask=5,
+    )
+
+    payload = _json.loads(services.export_tasks(task_list, fmt="json").body)
+
+    assert payload[0]["recurrence"]["frequency"] == "weekly"
+    assert payload[0]["recurrence"]["interval"] == 2
+    assert payload[0]["recurrence"]["weekday_mask"] == 5
+    assert "completed_at" in payload[0]
+    assert "order" in payload[0]
+
+
+@pytest.mark.django_db
+def test_search_matches_notes(session_client, inbox):
+    services.create_task(
+        task_list=inbox, title="Generic title", notes="The needle is here"
+    )
+    services.create_task(task_list=inbox, title="Other")
+
+    response = session_client.get(
+        reverse("tasks:list_detail", args=[inbox.id]), {"q": "needle"}
+    )
+
+    assert response.status_code == 200
+    assert b"Generic title" in response.content
+    assert b"Other" not in response.content
+
+
+@pytest.mark.django_db
+def test_sidebar_count_excludes_subtasks(task_list):
+    parent = services.create_task(task_list=task_list, title="Parent")
+    services.create_task(task_list=task_list, parent=parent, title="Child A")
+    services.create_task(task_list=task_list, parent=parent, title="Child B")
+
+    annotated = TaskList.objects.with_active_task_counts().get(id=task_list.id)
+
+    # Only the top-level parent counts; the two subtasks must be excluded.
+    assert annotated.active_task_count == 1

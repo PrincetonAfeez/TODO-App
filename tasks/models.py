@@ -41,12 +41,17 @@ class TaskListQuerySet(models.QuerySet):
         return self.filter(session_key=session_key)
 
     def with_active_task_counts(self):
+        # Count open, non-deleted, top-level tasks. The sidebar label "open
+        # item(s)" reflects the main list view, which renders top-level
+        # rows; including subtasks would inflate the count beyond what is
+        # visible.
         return self.annotate(
             active_task_count=models.Count(
                 "tasks",
                 filter=models.Q(
                     tasks__deleted_at__isnull=True,
                     tasks__status=TaskStatus.OPEN,
+                    tasks__parent__isnull=True,
                 ),
             )
         )
@@ -116,9 +121,6 @@ class Recurrence(models.Model):
 
 
 class TaskQuerySet(models.QuerySet):
-    def all_with_deleted(self):
-        return self.model.objects.all_with_deleted()
-
     def deleted_only(self):
         return self.filter(deleted_at__isnull=False)
 
@@ -182,7 +184,11 @@ class TaskQuerySet(models.QuerySet):
 
         stripped = query.strip()
         if stripped:
-            tasks = tasks.filter(title__icontains=stripped)
+            # Search top-level title and notes. Subtask matches do not
+            # surface their parent; this is documented in To-Do App.txt.
+            tasks = tasks.filter(
+                Q(title__icontains=stripped) | Q(notes__icontains=stripped)
+            )
 
         if sort == "due_date":
             return tasks.order_by("due_date", "order")
@@ -301,8 +307,6 @@ class Task(models.Model):
             has_children = Task.objects.all_with_deleted().filter(parent=self).exists()
             if has_children:
                 errors["parent"] = "A task with children cannot become a subtask."
-        if self.recurrence_id and self.parent_id:
-            errors["recurrence"] = "Subtasks cannot be recurrence templates."
         if errors:
             raise ValidationError(errors)
 

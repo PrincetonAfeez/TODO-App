@@ -226,11 +226,16 @@ def test_export_csv_flattens_parent_and_child_rows(task_list):
         "id",
         "parent_id",
         "title",
+        "notes",
         "status",
         "priority",
+        "order",
         "due_date",
+        "completed_at",
+        "recurrence_frequency",
         "deleted_at",
         "created_at",
+        "updated_at",
     ]
     titles = {row[2] for row in rows[1:]}
     assert titles == {"Parent", "Child"}
@@ -933,14 +938,16 @@ def test_lists_view_get_renders_lists_page(session_client):
 
 
 @pytest.mark.django_db
-def test_htmx_invalid_list_create_returns_400(session_client):
+def test_htmx_invalid_list_create_returns_inline_error(session_client):
     response = session_client.post(
         reverse("tasks:lists"),
         {"name": ""},
         HTTP_HX_REQUEST="true",
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 422
+    assert response["HX-Retarget"] == "#list-sidebar"
+    assert b"list-sidebar-form-errors" in response.content
 
 
 @pytest.mark.django_db

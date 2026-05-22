@@ -1,5 +1,6 @@
-""" Django management command for To-Do app """
 #!/usr/bin/env python
+"""Django management entry point for the To-Do app."""
+
 import os
 import sys
 
@@ -13,4 +14,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

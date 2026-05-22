@@ -1,8 +1,13 @@
 <section id="task-list-frame" class="space-y-3">
+  {% if not reorder_enabled %}
+    <p class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100" role="note">
+      Drag-and-drop reordering is disabled while filters, search, or a non-manual sort is active.
+    </p>
+  {% endif %}
   <div
     id="task-list"
     class="space-y-2"
-    data-sortable-list
+    {% if reorder_enabled %}data-sortable-list{% endif %}
     data-reorder-url="{% url 'tasks:reorder_tasks' current_list.id %}"
   >
     {% for task in tasks %}

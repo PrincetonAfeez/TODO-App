@@ -22,6 +22,11 @@ class TaskAdmin(admin.ModelAdmin):
     list_filter = ("status", "priority", "deleted_at")
     search_fields = ("title", "notes")
 
+    def get_queryset(self, request):
+        # Default Task.objects hides soft-deleted rows; admin should still
+        # show them so the deleted_at column and filter are usable.
+        return Task.objects.all_with_deleted()
+
 
 @admin.register(Recurrence)
 class RecurrenceAdmin(admin.ModelAdmin):

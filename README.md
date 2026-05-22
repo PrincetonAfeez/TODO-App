@@ -5,6 +5,28 @@ It uses SQLite for development, keeps views thin, puts orchestration in
 `tasks/services.py`, and records task history through model signals plus
 intent-bearing service events.
 
+## Setup
+
+First-time clone:
+
+**PowerShell (Windows)**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+.\.venv\Scripts\python manage.py migrate
+```
+
+**Bash / macOS / Linux**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+.venv/bin/python manage.py migrate
+```
+
 ## Run
 
 Activate the project virtualenv first. Examples below use `.venv` in the repo root.

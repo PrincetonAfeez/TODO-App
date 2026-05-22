@@ -8,7 +8,8 @@
       "Bash(.venv/Scripts/python -m ruff check .)",
       "Bash(git stash *)",
       "Bash(.venv/Scripts/python -m ruff check . --fix)",
-      "Bash(.venv/Scripts/python -m pytest -m \"not e2e\" --collect-only)"
+      "Bash(.venv/Scripts/python -m pytest -m \"not e2e\" --collect-only)",
+      "Bash(.venv/Scripts/python -c \"import io; f=open\\('tasks/test_full_coverage.py','rb'\\); print\\(len\\(f.readlines\\(\\)\\)\\); f.close\\(\\)\")"
     ]
   }
 }

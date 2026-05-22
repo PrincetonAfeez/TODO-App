@@ -68,9 +68,11 @@ def _append_list_count_oob(
 ) -> HttpResponse:
     if not request.htmx:
         return response
+    # Match TaskListQuerySet.with_active_task_counts(): top-level only.
     count = Task.objects.filter(
         task_list=task_list,
         status=TaskStatus.OPEN,
+        parent__isnull=True,
     ).count()
     oob = render_to_string(
         "tasks/partials/_list_count_oob.html",
@@ -272,13 +274,31 @@ def lists_view(request):
                                 request,
                                 task_lists=task_lists,
                                 current_list=current_list,
+                                list_form=TaskListForm(),
                             ),
                         ),
                         "List created",
                     )
                 return redirect("tasks:list_detail", list_id=task_list.id)
         if request.htmx:
-            return HttpResponseBadRequest("Could not create list.")
+            current_list_id = request.POST.get("current_list_id")
+            current_list = None
+            if current_list_id and str(current_list_id).isdigit():
+                current_list = (
+                    _lists_for_request(request)
+                    .filter(id=current_list_id)
+                    .first()
+                )
+            return _htmx_form_error(
+                request,
+                template="tasks/partials/_list_sidebar.html",
+                context=_base_context(
+                    request,
+                    current_list=current_list,
+                    list_form=form,
+                ),
+                target="#list-sidebar",
+            )
         return render(
             request,
             "tasks/lists.html",
@@ -317,6 +337,18 @@ def list_detail(request, list_id: int):
         )
     )
 
+    # Manual drag-reorder is only meaningful when the rendered list matches
+    # the full top-level scope. Once filtering, search, or non-manual sort is
+    # active, the visible rows are a partial view and reordering them would
+    # silently corrupt the underlying order.
+    reorder_enabled = (
+        view_filter == "all"
+        and sort == "manual"
+        and not query
+        and status not in TaskStatus.values
+        and priority not in TaskPriority.values
+    )
+
     context = _base_context(
         request,
         current_list=task_list,
@@ -325,6 +357,7 @@ def list_detail(request, list_id: int):
         recurrence_form=RecurrenceForm(),
         tasks=tasks,
         show_deleted=show_deleted,
+        reorder_enabled=reorder_enabled,
         filters={
             "view": view_filter,
             "status": status or "",
@@ -503,7 +536,13 @@ def delete_task_view(request, task_id: int):
 def restore_task_view(request, task_id: int):
     task = _task_or_404(request, task_id)
     task_list = task.task_list
-    task = services.restore_task(task)
+    try:
+        task = services.restore_task(task)
+    except services.RestoreError as exc:
+        message = str(exc)
+        if request.htmx:
+            return _with_toast(HttpResponseBadRequest(message), message)
+        return HttpResponseBadRequest(message)
     template = (
         "tasks/partials/_subtask_row.html"
         if task.parent_id

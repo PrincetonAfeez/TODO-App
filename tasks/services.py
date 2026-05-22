@@ -24,6 +24,10 @@ from .models import (
 )
 
 
+class RestoreError(ValueError):
+    """Raised when a task cannot be restored (e.g., its parent is still deleted)."""
+
+
 @dataclass(frozen=True)
 class ExportResult:
     filename: str
@@ -114,6 +118,11 @@ def soft_delete_task(task: Task) -> None:
 
 @transaction.atomic
 def restore_task(task: Task) -> Task:
+    if task.parent_id is not None and Task.objects.all_with_deleted().filter(
+        pk=task.parent_id,
+        deleted_at__isnull=False,
+    ).exists():
+        raise RestoreError("Restore the parent first.")
     parent_deleted_at = task.deleted_at
     task.deleted_at = None
     task.save(update_fields=["deleted_at", "updated_at"])
@@ -137,6 +146,9 @@ def reorder_tasks(
     ids = [int(task_id) for task_id in ordered_ids if str(task_id).strip()]
     if not ids:
         return
+
+    if len(ids) != len(set(ids)):
+        raise ValueError("Duplicate task ids in reorder payload.")
 
     scope = Task.objects.filter(task_list=task_list, parent=parent, id__in=ids)
     found_ids = set(scope.values_list("id", flat=True))
@@ -169,6 +181,10 @@ def set_recurrence(
     day_of_month: int | None = None,
     end_date=None,
 ) -> Recurrence:
+    # Audit: recurrence add/edit shows up in TaskEvent as an `updated`
+    # action with `recurrence_id` in `changes` (emitted by the post_save
+    # signal). We intentionally do not add `recurrence_set`/`recurrence_cleared`
+    # action codes — see ADR 0003 / 0007 for the signal-vs-service split.
     recurrence = task.recurrence or Recurrence()
     recurrence.frequency = frequency
     recurrence.interval = max(1, interval)
@@ -299,11 +315,29 @@ def _export_filename(task_list: TaskList, extension: str) -> str:
     return f"{stem}.{extension}"
 
 
+CSV_COLUMNS = [
+    "id",
+    "parent_id",
+    "title",
+    "notes",
+    "status",
+    "priority",
+    "order",
+    "due_date",
+    "completed_at",
+    "recurrence_frequency",
+    "deleted_at",
+    "created_at",
+    "updated_at",
+]
+
+
 def export_tasks(task_list: TaskList, *, fmt: str) -> ExportResult:
     child_qs = Task.objects.all_with_deleted().ordered()
     tasks = (
         Task.objects.all_with_deleted()
         .filter(task_list=task_list, parent__isnull=True)
+        .select_related("recurrence")
         .ordered()
         .prefetch_related(Prefetch("children", queryset=child_qs))
     )
@@ -319,18 +353,7 @@ def export_tasks(task_list: TaskList, *, fmt: str) -> ExportResult:
 
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    writer.writerow(
-        [
-            "id",
-            "parent_id",
-            "title",
-            "status",
-            "priority",
-            "due_date",
-            "deleted_at",
-            "created_at",
-        ]
-    )
+    writer.writerow(CSV_COLUMNS)
     for task in tasks:
         _write_task_csv_row(writer, task)
         for child in task.children.all():
@@ -342,6 +365,18 @@ def export_tasks(task_list: TaskList, *, fmt: str) -> ExportResult:
     )
 
 
+def _recurrence_to_json(recurrence: Recurrence | None) -> dict | None:
+    if recurrence is None:
+        return None
+    return {
+        "frequency": recurrence.frequency,
+        "interval": recurrence.interval,
+        "weekday_mask": recurrence.weekday_mask,
+        "day_of_month": recurrence.day_of_month,
+        "end_date": recurrence.end_date.isoformat() if recurrence.end_date else None,
+    }
+
+
 def _task_to_json(task: Task) -> dict:
     return {
         "id": task.id,
@@ -349,8 +384,15 @@ def _task_to_json(task: Task) -> dict:
         "notes": task.notes,
         "status": task.status,
         "priority": task.priority,
+        "order": task.order,
         "due_date": task.due_date.isoformat() if task.due_date else None,
+        "completed_at": (
+            task.completed_at.isoformat() if task.completed_at else None
+        ),
+        "recurrence": _recurrence_to_json(task.recurrence),
         "deleted_at": task.deleted_at.isoformat() if task.deleted_at else None,
+        "created_at": task.created_at.isoformat(),
+        "updated_at": task.updated_at.isoformat(),
         "subtasks": [_task_to_json(child) for child in task.children.all()],
     }
 
@@ -361,10 +403,15 @@ def _write_task_csv_row(writer, task: Task) -> None:
             task.id,
             task.parent_id or "",
             task.title,
+            task.notes,
             task.status,
             task.priority,
+            task.order,
             task.due_date.isoformat() if task.due_date else "",
+            task.completed_at.isoformat() if task.completed_at else "",
+            task.recurrence.frequency if task.recurrence_id else "",
             task.deleted_at.isoformat() if task.deleted_at else "",
             task.created_at.isoformat(),
+            task.updated_at.isoformat(),
         ]
     )
