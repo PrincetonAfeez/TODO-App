@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\filters.py
+# hypothesis_version: 6.151.12
+
+['%s__', '%s__%s__exact', '%s__exact', '%s__gte', '%s__isempty', '%s__isnull', '%s__lt', '%s__pk', ',', '0', '1', 'All', 'Any date', 'Empty', 'Has date', 'No', 'No date', 'Not empty', 'Past 7 days', 'This month', 'This year', 'Today', 'True', 'Unknown', 'Yes', '__c', 'admin/filter.html', 'display', 'empty__c', 'false__c', 'isnull', 'not_empty__c', 'null__c', 'pk__in', 'query_string', 'selected', 'true__c', 'verbose_name']

@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "name": "ToDo",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "git.enabled": true,
+    "git.autorefresh": true,
+    "git.autoRepositoryDetection": true,
+    "git.openRepositoryInParentFolders": "never",
+    "git.repositoryScanMaxDepth": 2
+  }
+}

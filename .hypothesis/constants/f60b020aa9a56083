@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\backends.py
+# hypothesis_version: 6.151.12
+
+['%s.%s', '.', '_%s_perm_cache', '_get_%s_permissions', '_perm_cache', 'codename', 'group', 'is_active', 'pk', 'user']

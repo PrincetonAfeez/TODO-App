@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\forms.py
+# hypothesis_version: 6.151.12
+
+[254, '%s__iexact', 'Disabled', 'Email', 'Enabled', 'NFKC', 'New password', 'No password set.', 'Old password', 'Password', 'Reset password', 'Set password', '__all__', 'autocapitalize', 'autocomplete', 'autofocus', 'button_label', 'class', 'content_type', 'current-password', 'disabled', 'django.contrib.auth', 'domain', 'email', 'false', 'http', 'https', 'inactive', 'invalid_login', 'is_active', 'label', 'maxlength', 'new-password', 'new_password1', 'new_password2', 'none', 'old_password', 'password', 'password1', 'password2', 'password_incorrect', 'password_mismatch', 'protocol', 'radiolist inline', 'required', 'save_m2m', 'set_usable_password', 'site_name', 'summary', 'text/html', 'token', 'true', 'uid', 'usable_password', 'user', 'user_permissions', 'username', 'value']

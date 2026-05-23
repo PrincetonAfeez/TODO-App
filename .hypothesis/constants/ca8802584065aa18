@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\utils\version.py
+# hypothesis_version: 6.151.12
+
+['%Y%m%d%H%M%S', '%d.%d', '(\\d+|[a-z]+|\\.)', '.', '.dev%s', '__file__', 'a', 'alpha', 'b', 'beta', 'dev', 'final', 'pypy', 'rc']

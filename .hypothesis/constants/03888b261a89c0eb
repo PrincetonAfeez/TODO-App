@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\conf\__init__.py
+# hypothesis_version: 6.151.12
+
+['%s%s', '/', '/usr/share/zoneinfo', '<%(cls)s>', 'ALLOWED_HOSTS', 'INSTALLED_APPS', 'LOCALE_PATHS', 'MEDIA_URL', 'SECRET_KEY', 'SECRET_KEY_FALLBACKS', 'STATIC_URL', 'TEMPLATE_DIRS', 'TZ', '_deleted', '_wrapped', 'cls', 'default', 'http://', 'https://', 'is_overridden', 'setting %s', 'settings', 'settings_module', 'staticfiles', 'tzset']

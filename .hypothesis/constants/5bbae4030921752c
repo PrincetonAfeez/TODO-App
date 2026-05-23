@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\views.py
+# hypothesis_version: 6.151.12
+
+['/', 'Enter new password', 'Logged out', 'Password change', 'Password reset', 'Password reset sent', 'dispatch', 'email_template_name', 'extra_email_context', 'form', 'from_email', 'login_url', 'options', 'password_change_done', 'password_reset_done', 'post', 'request', 'set-password', 'site', 'site_name', 'subtitle', 'title', 'token', 'token_generator', 'uidb64', 'use_https', 'user', 'validlink']

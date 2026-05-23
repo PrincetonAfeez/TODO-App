@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\introspection.py
+# hypothesis_version: 6.151.12
+
+['"', '%%json_valid("%s")%%', '(', '()', ')', ',', ', ', 'ASC', 'AutoField', 'BigIntegerField', 'BinaryField', 'BooleanField', 'CHECK', 'COLLATE', 'CONSTRAINT', 'CharField', 'DESC', 'DateField', 'DateTimeField', 'DecimalField', 'FieldInfo', 'FloatField', 'IntegerField', 'JSONField', 'PositiveIntegerField', 'SmallIntegerField', 'TextField', 'TimeField', 'UNIQUE', '__primary__', 'bigint', 'bigint unsigned', 'blob', 'bool', 'boolean', 'char', 'check', 'column', 'columns', 'date', 'datetime', 'decimal', 'foreign_key', 'has_json_constraint', 'index', 'int', 'integer', 'integer unsigned', 'orders', 'pk', 'primary_key', 'real', 'smallint', 'smallint unsigned', 'smallinteger', 'table', 'text', 'time', 'type', 'unique', 'varchar']

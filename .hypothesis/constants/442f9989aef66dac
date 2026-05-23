@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\template\context_processors.py
+# hypothesis_version: 6.151.12
+
+['LANGUAGES', 'LANGUAGE_BIDI', 'LANGUAGE_CODE', 'MEDIA_URL', 'NOTPROVIDED', 'REMOTE_ADDR', 'STATIC_URL', 'TIME_ZONE', 'csrf_token', 'debug', 'request', 'sql_queries']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\sql\where.py
+# hypothesis_version: 6.151.12
+
+[' %s ', ' AND ', '(%s)', 'AND', 'NOT (%s)', 'OR', 'XOR', 'children', 'clone', 'lhs', 'relabel_aliases', 'relabeled_clone', 'resolve_expression', 'rhs', 'split_having_qualify']

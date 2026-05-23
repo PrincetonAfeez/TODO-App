@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\templatetags\base.py
+# hypothesis_version: 6.151.12
+
+['admin/%s', 'admin/%s/%s', 'admin/%s/%s/%s', 'opts']

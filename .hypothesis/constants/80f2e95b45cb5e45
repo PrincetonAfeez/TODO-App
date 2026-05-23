@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\http\__init__.py
+# hypothesis_version: 6.151.12
+
+['BadHeaderError', 'FileResponse', 'Http404', 'HttpHeaders', 'HttpRequest', 'HttpResponse', 'HttpResponseBase', 'HttpResponseGone', 'HttpResponseNotFound', 'HttpResponseRedirect', 'JsonResponse', 'QueryDict', 'RawPostDataException', 'SimpleCookie', 'UnreadablePostError', 'parse_cookie']

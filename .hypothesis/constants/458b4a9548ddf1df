@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\base\features.py
+# hypothesis_version: 6.151.12
+
+['AutoField', 'BigAutoField', 'BigIntegerField', 'BinaryField', 'BooleanField', 'CharField', 'DurationField', 'IntegerField', 'PositiveIntegerField', 'SmallAutoField', 'SmallIntegerField', 'TimeField', 'ci', 'cs', 'non_default', 'swedish_ci', 'virtual']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\staticfiles\storage.py
+# hypothesis_version: 6.151.12
+
+['#', '%s%s%s', '*.css', '*.js', ', ', '.%s', '/', '//', '1.0', '1.1', '?', '?#', '\\', '^[a-z]+:', 'dry_run', 'hash', 'import"%(url)s";', 'import("%(url)s")', 'matched', 'paths', 'seek', 'staticfiles.json', 'url', 'url("%(url)s")', 'utf-8', 'version']

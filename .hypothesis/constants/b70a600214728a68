@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\urls\converters.py
+# hypothesis_version: 6.151.12
+
+['.+', '[-a-zA-Z0-9_]+', '[0-9]+', '[^/]+', 'int', 'path', 'slug', 'str', 'uuid']

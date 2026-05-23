@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\operations\__init__.py
+# hypothesis_version: 6.151.12
+
+['AddConstraint', 'AddField', 'AddIndex', 'AlterConstraint', 'AlterField', 'AlterIndexTogether', 'AlterModelManagers', 'AlterModelOptions', 'AlterModelTable', 'AlterUniqueTogether', 'CreateModel', 'DeleteModel', 'RemoveConstraint', 'RemoveField', 'RemoveIndex', 'RenameField', 'RenameIndex', 'RenameModel', 'RunPython', 'RunSQL']

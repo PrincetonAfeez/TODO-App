@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\conftest.py
+# hypothesis_version: 6.151.12
+
+[720, 1280, 'height', 'pytest_playwright', 'session', 'true', 'viewport', 'width']

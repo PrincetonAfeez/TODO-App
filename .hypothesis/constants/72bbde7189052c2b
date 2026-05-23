@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\config\settings\base.py
+# hypothesis_version: 6.151.12
+
+['.env', '127.0.0.1', 'ALLOWED_HOSTS', 'APP_DIRS', 'America/Los_Angeles', 'BACKEND', 'DEBUG', 'DIRS', 'INFO', 'NAME', 'OPTIONS', 'SECRET_KEY', 'class', 'config.urls', 'console', 'context_processors', 'default', 'dev-only-change-me', 'django.contrib.admin', 'django.contrib.auth', 'django_htmx', 'en-us', 'format', 'formatter', 'formatters', 'handlers', 'human', 'json', 'level', 'localhost', 'root', 'static', 'static/', 'staticfiles', 'style', 'templates', 'version', '{']

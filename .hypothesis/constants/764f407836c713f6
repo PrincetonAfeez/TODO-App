@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\sessions\migrations\0001_initial.py
+# hypothesis_version: 6.151.12
+
+['Session', 'abstract', 'db_table', 'django_session', 'expire date', 'expire_date', 'objects', 'session', 'session data', 'session key', 'session_data', 'session_key', 'sessions', 'verbose_name', 'verbose_name_plural']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\checks\registry.py
+# hypothesis_version: 6.151.12
+
+['admin', 'async_support', 'caches', 'commands', 'compatibility', 'database', 'deploy', 'files', 'models', 'security', 'signals', 'sites', 'staticfiles', 'templates', 'translation', 'urls']

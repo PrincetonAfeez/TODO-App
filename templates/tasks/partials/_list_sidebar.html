@@ -6,7 +6,7 @@
     </a>
   </div>
 
-  <nav class="mt-3 space-y-1">
+  <nav class="mt-3 space-y-1" aria-label="Task lists">
     {% for list in task_lists %}
       <a
         href="{% url 'tasks:list_detail' list.id %}"

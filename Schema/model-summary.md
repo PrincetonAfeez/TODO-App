@@ -14,7 +14,7 @@ Stores a user's session-scoped list of tasks.
 
 Constraints:
 
-- Unique list name per session: `(session_key, name)`
+- Unique list name per session: `(session_key, name)` — `session_key` alone is not unique
 
 ## Recurrence
 
@@ -29,6 +29,14 @@ Stores recurrence rules for template tasks.
 | `day_of_month` | small integer | Optional monthly day, 1-31 |
 | `end_date` | date | Optional recurrence end date |
 | `created_at` | timestamp | Created automatically |
+
+Validation rules enforced in Django (`Recurrence.clean`), not as database CHECK constraints:
+
+- `interval` must be at least 1 (form also caps weekly interval at 52).
+- `weekday_mask` must fit 1–127 when set.
+- `day_of_month` must be 1–31 when set.
+
+No database indexes on this table (matches migration `0001_initial`).
 
 ## Task
 
@@ -52,7 +60,17 @@ Stores top-level tasks and subtasks. Tasks are soft-deleted with `deleted_at`.
 | `updated_at` | timestamp | Updated automatically |
 | `deleted_at` | timestamp | Optional soft-delete time |
 
-Validation rules enforced in Django:
+Database CHECK constraints (PostgreSQL reference schema only):
+
+- `task_status_valid`: `status IN ('open', 'done')`
+- `task_priority_valid`: `priority IN ('low', 'medium', 'high')`
+
+Indexes (match migration `0001_initial`):
+
+- `task_list_id`, `parent_id`, `status`, `due_date`, `deleted_at`
+- composite `(task_list_id, parent_id, order)`
+
+Validation rules enforced in Django (`Task.clean`):
 
 - Subtasks cannot have their own subtasks.
 - Subtasks must belong to the same task list as their parent.
@@ -73,6 +91,10 @@ Stores audit history for task lifecycle and service events.
 | `changes` | json/jsonb | Structured changes payload |
 | `created_at` | timestamp | Created automatically; indexed |
 
+Indexes: `session_key`, `created_at`, plus implicit FK indexes on `task_id` and `task_list_id`.
+
+`action` values are validated by `TaskEventAction` choices in Python, not a database CHECK.
+
 Actions:
 
 - `created`
@@ -91,3 +113,17 @@ Actions:
 - `Recurrence` can be attached to many template `Task` records.
 - A generated `Task` can point back to the template task through `spawned_from`.
 - `TaskEvent` can reference both the task and task list involved in an event.
+
+## Application behavior (not in SQL)
+
+List views filter through `TaskQuerySet.apply_list_filters()`:
+
+- `view=today|upcoming|overdue` — open tasks only; status query param ignored.
+- `view=all` — optional `status`, `priority`, search, and sort filters apply.
+- Default manager hides soft-deleted rows unless `show_deleted=1`.
+
+CSV export (`services.CSV_COLUMNS`) includes full recurrence fields
+(`recurrence_interval`, `recurrence_weekday_mask`, `recurrence_day_of_month`,
+`recurrence_end_date`) alongside `recurrence_frequency`.
+
+See [`docs/edge-cases.md`](../docs/edge-cases.md) for the full invariant catalog.

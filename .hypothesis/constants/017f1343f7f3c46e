@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\middleware\cache.py
+# hypothesis_version: 6.151.12
+
+[200, 304, '*', 'Age', 'Cache-Control', 'Cookie', 'Expires', 'GET', 'HEAD', '_cache_update_cache', 'cache_alias', 'key_prefix', 'private', 'render']

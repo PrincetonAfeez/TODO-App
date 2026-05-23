@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\http\request.py
+# hypothesis_version: 6.151.12
+
+['%s%s%s', '%s:%s', '%s=%s', '&', '*', '*/*', ',', '-', '.', '.localhost', '/', '/%s', '/../', '/./', '//', '//%s', '127.0.0.1', '443', '80', '; %s=%s', '<%s: %s %r>', '<%s: %s>', '<%s>', '?', 'Accept', 'CONTENT_LENGTH', 'CONTENT_TYPE', 'GET', 'HTTP_', 'HTTP_HOST', 'POST', 'QUERY_STRING', 'SERVER_NAME', 'SERVER_PORT', '[::1]', '_', '_body', '_files', '_post', 'charset', 'encoding', 'http', 'https', 'iso-8859-1', 'keep_blank_values', 'max_num_fields', 'multipart/form-data', 'q', 'quality', 'replace', 'seekable', 'specificity', 'utf-8', '{}://{}']

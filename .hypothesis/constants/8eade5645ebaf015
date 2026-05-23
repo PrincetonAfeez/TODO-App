@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py
+# hypothesis_version: 6.151.12
+
+['"', "'", '\'"', '../', './', '/', '<%s: extends %s>', '__include_context', 'block', 'block_context', 'context', 'endblock', 'endblock %s', 'extends', 'extends_context', 'include', 'only', 'render', 'template', 'with']

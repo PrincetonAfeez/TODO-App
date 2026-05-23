@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\sessions\base_session.py
+# hypothesis_version: 6.151.12
+
+['expire date', 'session', 'session data', 'session key', 'sessions']

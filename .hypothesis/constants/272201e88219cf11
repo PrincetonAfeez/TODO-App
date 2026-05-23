@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\utils\deprecation.py
+# hypothesis_version: 6.151.12
+
+['<%s get_response=%s>', '__qualname__', 'process_request', 'process_response']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\fields\related_descriptors.py
+# hypothesis_version: 6.151.12
+
+['%s has no %s.', '%s.%s', '%s__%s', '%s__in', '%s__isnull', '%s_id', '__module__', '__qualname__', 'forward', 'instance', 'post_add', 'post_clear', 'post_remove', 'pre_add', 'pre_clear', 'pre_remove', 'reverse']

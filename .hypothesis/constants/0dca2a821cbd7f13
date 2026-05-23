@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\serializers\__init__.py
+# hypothesis_version: 6.151.12
+
+[', ', 'BadSerializerModule', 'Deserializer', 'Serializer', 'dependencies', 'json', 'jsonl', 'natural_key', 'python', 'xml', 'yaml']

@@ -29,6 +29,7 @@
       name="interval"
       type="number"
       min="1"
+      max="52"
       value="{% if form.is_bound %}{{ form.interval.value }}{% else %}{{ task.recurrence.interval|default:1 }}{% endif %}"
       class="h-8 rounded-md border border-stone-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
     >

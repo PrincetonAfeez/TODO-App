@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\models.py
+# hypothesis_version: 6.151.12
+
+[100, 150, 255, '%s %s', '%s | %s', 'AUTH_USER_MODEL', 'AnonymousUser', 'active', 'aget_%s_permissions', 'ahas_module_perms', 'ahas_perm', 'all', 'codename', 'content type', 'content_type', 'content_type__model', 'date joined', 'email', 'email address', 'first name', 'get_%s_permissions', 'group', 'groups', 'has_module_perms', 'has_perm', 'is_staff', 'is_superuser', 'last name', 'last_login', 'name', 'permission', 'permissions', 'staff status', 'superuser status', 'unique', 'user', 'user permissions', 'user_set', 'username', 'users', 'with_perm']

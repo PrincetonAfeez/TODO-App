@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\_functions.py
+# hypothesis_version: 6.151.12
+
+[1000000, '*', '+', '-', ':', 'ACOS', 'ASIN', 'ATAN', 'ATAN2', 'BITXOR', 'CEILING', 'COS', 'COT', 'DEGREES', 'EXP', 'FLOOR', 'LN', 'LOG', 'LPAD', 'MD5', 'MOD', 'PI', 'POWER', 'RADIANS', 'RAND', 'REPEAT', 'REVERSE', 'RPAD', 'SHA1', 'SHA224', 'SHA256', 'SHA384', 'SHA512', 'SIGN', 'SIN', 'SQRT', 'STDDEV_POP', 'STDDEV_SAMP', 'TAN', 'VAR_POP', 'VAR_SAMP', 'day', 'django_date_extract', 'django_date_trunc', 'django_time_diff', 'django_time_extract', 'django_time_trunc', 'hour', 'iso_week_day', 'iso_year', 'minute', 'month', 'quarter', 'regexp', 'second', 'week', 'week_day', 'year']

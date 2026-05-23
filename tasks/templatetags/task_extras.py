@@ -3,17 +3,6 @@ from django import template
 register = template.Library()
 
 
-@register.filter
-def weekday_checked(recurrence, bit):
-    if recurrence is None or recurrence.weekday_mask is None:
-        return False
-    try:
-        bit_value = int(bit)
-    except (TypeError, ValueError):
-        return False
-    return bool(recurrence.weekday_mask & bit_value)
-
-
 def _weekday_selected(form, recurrence, bit):
     try:
         bit_value = str(int(bit))

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\migrations\0002_alter_permission_name_max_length.py
+# hypothesis_version: 6.151.12
+
+[255, '0001_initial', 'auth', 'name', 'permission']

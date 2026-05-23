@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\features.py
+# hypothesis_version: 6.151.12
+
+[999, 'AutoField', 'BigAutoField', 'BigIntegerField', 'CharField', 'DurationField', 'SmallAutoField', 'binary', 'ci', 'cs', 'nocase', 'non_default', 'supports_json_field', 'virtual']

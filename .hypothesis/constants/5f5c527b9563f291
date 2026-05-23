@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\functions\comparison.py
+# hypothesis_version: 6.151.12
+
+['%H:%M:%f', '%Y-%m-%d %H:%M:%f', 'CAST', 'COALESCE', 'COLLATE', 'FloatField', 'GREATEST', 'JSONField', 'LEAST', 'MAX', 'MIN', 'NULLIF', 'TO_NCLOB', 'TextField', '^[\\w-]+$', 'collation', 'date', 'datetime', 'db_type', 'time']

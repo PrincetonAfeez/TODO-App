@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\tasks\signals.py
+# hypothesis_version: 6.151.12
+
+['_old_values', 'completed_at', 'deleted_at', 'due_date', 'isoformat', 'notes', 'order', 'parent_id', 'priority', 'recurrence_id', 'spawned_from_id', 'status', 'task_list_id', 'title']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\models.py
+# hypothesis_version: 6.151.12
+
+[200, '-action_time', 'Added “%(object)s”.', 'Added.', 'Addition', 'Change', 'Changed {fields}.', 'Deletion', 'LogEntry Object', 'No fields changed.', '[', 'action flag', 'action time', 'added', 'admin:%s_%s_change', 'and', 'change message', 'changed', 'changes', 'content type', 'deleted', 'django_admin_log', 'fields', 'log entries', 'log entry', 'name', 'object', 'object id', 'object repr', 'user']

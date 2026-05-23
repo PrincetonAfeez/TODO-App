@@ -13,13 +13,13 @@
       </div>
       {# Filter submit omits page; returning to page 1 on filter change is intentional. #}
       <form class="flex flex-wrap gap-2" method="get">
-        <select name="action" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <select name="action" aria-label="Filter by action" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
           <option value="">Any action</option>
           {% for value,label in actions %}
             <option value="{{ value }}" {% if current_action == value %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
-        <select name="list" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <select name="list" aria-label="Filter by list" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
           <option value="">Any list</option>
           {% for list in task_lists %}
             <option value="{{ list.id }}" {% if current_list_id == list.id|stringformat:"s" %}selected{% endif %}>{{ list.name }}</option>
@@ -39,12 +39,17 @@
         <span>When</span>
       </div>
       {% for event in page.object_list %}
-        <div class="grid grid-cols-[9rem_1fr_12rem] gap-3 border-b border-stone-100 px-4 py-3 text-sm last:border-0 dark:border-zinc-800">
-          <span class="font-medium">{{ event.get_action_display }}</span>
-          <span class="min-w-0 truncate">
-            {% if event.task %}{{ event.task.title }}{% else %}{{ event.task_list.name|default:"List" }}{% endif %}
-          </span>
-          <time class="text-stone-500 dark:text-stone-400">{{ event.created_at|date:"M j, g:i A" }}</time>
+        <div class="border-b border-stone-100 px-4 py-3 text-sm last:border-0 dark:border-zinc-800">
+          <div class="grid grid-cols-[9rem_1fr_12rem] gap-3">
+            <span class="font-medium">{{ event.get_action_display }}</span>
+            <span class="min-w-0 truncate">
+              {% if event.task %}{{ event.task.title }}{% else %}{{ event.task_list.name|default:"List" }}{% endif %}
+            </span>
+            <time class="text-stone-500 dark:text-stone-400">{{ event.created_at|date:"M j, g:i A" }}</time>
+          </div>
+          {% if event.changes %}
+            <pre class="mt-2 overflow-x-auto rounded bg-stone-50 p-2 font-mono text-xs text-stone-600 dark:bg-zinc-950 dark:text-stone-300">{{ event.changes }}</pre>
+          {% endif %}
         </div>
       {% empty %}
         <div class="px-4 py-10 text-center text-sm text-stone-500 dark:text-stone-400">No events yet.</div>
@@ -52,7 +57,7 @@
     </div>
 
     {% if page.has_other_pages %}
-      <nav class="flex items-center justify-between text-sm">
+      <nav class="flex items-center justify-between text-sm" aria-label="Events pagination">
         {% if page.has_previous %}
           <a class="rounded-md border border-stone-300 px-3 py-2 dark:border-zinc-700" href="?{% if events_filter_query %}{{ events_filter_query }}&{% endif %}page={{ page.previous_page_number }}">Previous</a>
         {% else %}

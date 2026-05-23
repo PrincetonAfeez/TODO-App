@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\checks\urls.py
+# hypothesis_version: 6.151.12
+
+[400, 403, 404, 500, '.', '/', ':', 'MEDIA_URL', 'ROOT_URLCONF', 'STATIC_URL', 'check', 'handler%s', 'namespace', 'request', 'request, exception', 'resolve', 'url_patterns', 'urls.E004', 'urls.E006', 'urls.E007', 'urls.E008', 'urls.W005']

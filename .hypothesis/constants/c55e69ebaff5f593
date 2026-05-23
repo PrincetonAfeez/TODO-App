@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py
+# hypothesis_version: 6.151.12
+
+['    %s', '*', ', ', '-', '--commands', '--help', '--noreload', '--pythonpath', '--settings', '--version', '-h', '.', '. Did you mean %s?', '=', 'COMP_CWORD', 'COMP_WORDS', 'DJANGO_AUTO_COMPLETE', 'Unknown command: %r', '[%s]', '_', '__main__.py', 'args', 'commands', 'django', 'django.core', 'dumpdata', 'help', 'management', 'python -m django', 'runserver', 'skip_checks', 'sqlmigrate', 'sqlsequencereset', 'test', 'version']

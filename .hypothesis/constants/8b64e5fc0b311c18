@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\config\settings\dev.py
+# hypothesis_version: 6.151.12
+
+['127.0.0.1', 'localhost', 'testserver']

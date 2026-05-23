@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\base\validation.py
+# hypothesis_version: 6.151.12
+
+['check_field_type', 'remote_field']

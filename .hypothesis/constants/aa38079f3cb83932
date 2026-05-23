@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\paginator.py
+# hypothesis_version: 6.151.12
+
+['<Page %s of %s>', 'count', 'invalid_page', 'min_page', 'model', 'no_results', 'ordered', '{!r}', '{} {}', '…']

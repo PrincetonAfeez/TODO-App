@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\views\i18n.py
+# hypothesis_version: 6.151.12
+
+[204, '+', ',', '/', ':', ';', '=', 'DATETIME_FORMAT', 'DATE_FORMAT', 'DATE_INPUT_FORMATS', 'DECIMAL_SEPARATOR', 'FIRST_DAY_OF_WEEK', 'HTTP_REFERER', 'MONTH_DAY_FORMAT', 'NUMBER_GROUPING', 'POST', 'Plural-Forms:', 'SHORT_DATE_FORMAT', 'THOUSAND_SEPARATOR', 'TIME_FORMAT', 'TIME_INPUT_FORMATS', 'YEAR_MONTH_FORMAT', 'catalog', 'catalog_str', 'djangojs', 'domain', 'formats', 'formats_str', 'i18n_catalog.js', 'language', 'locale', 'next', 'nplurals=\\s*(\\d+)', 'packages', 'plural', 'plural=', 'templates', 'text/html', 'utf-8']

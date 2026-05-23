@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\contenttypes\fields.py
+# hypothesis_version: 6.151.12
+
+['%s__in', '%s__pk', '%s_id', '+', 'ManyToManyField', 'blank', 'content_type', 'contenttypes.E001', 'contenttypes.E002', 'contenttypes.E003', 'contenttypes.E004', 'editable', 'exact', 'null', 'object_id', 'on_delete', 'private_only', 'rel', 'serialize']

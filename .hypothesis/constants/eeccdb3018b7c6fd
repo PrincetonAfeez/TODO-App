@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\password_validation.py
+# hypothesis_version: 6.151.12
+
+[0.1, 0.7, '<li>{}</li>', '<ul>{}</ul>', 'NAME', 'OPTIONS', '\\W+', 'email', 'first_name', 'last_name', 'min_length', 'password_changed', 'password_too_common', 'password_too_short', 'password_too_similar', 'rt', 'username', 'utf-8', 'verbose_name']

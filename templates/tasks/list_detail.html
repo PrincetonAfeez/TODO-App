@@ -12,7 +12,7 @@
         <h1 class="text-2xl font-semibold tracking-normal">{{ current_list.name }}</h1>
         <form method="post" action="{% url 'tasks:rename_list' current_list.id %}" class="mt-2 flex max-w-md gap-2">
           {% csrf_token %}
-          <input name="name" value="{{ current_list.name }}" class="h-9 min-w-0 flex-1 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+          <input name="name" value="{{ current_list.name }}" aria-label="List name" class="h-9 min-w-0 flex-1 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
           <button class="inline-flex h-9 items-center gap-2 rounded-md bg-stone-900 px-3 text-sm font-medium text-white hover:bg-stone-700 dark:bg-stone-100 dark:text-zinc-950 dark:hover:bg-white">
             <i data-lucide="save" class="h-4 w-4"></i>
             Rename
@@ -20,11 +20,11 @@
         </form>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <a href="{% url 'tasks:export_csv' current_list.id %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+        <a href="{% url 'tasks:export_csv' current_list.id %}{% if show_deleted %}?show_deleted=1{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
           <i data-lucide="file-down" class="h-4 w-4"></i>
           CSV
         </a>
-        <a href="{% url 'tasks:export_json' current_list.id %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+        <a href="{% url 'tasks:export_json' current_list.id %}{% if show_deleted %}?show_deleted=1{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
           <i data-lucide="braces" class="h-4 w-4"></i>
           JSON
         </a>
@@ -49,25 +49,20 @@
       hx-push-url="true"
       hx-trigger="submit, change from:select, change from:input[type='checkbox'], keyup changed delay:400ms from:[name='q']"
     >
-      <select name="view" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <select name="view" aria-label="View" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
         <option value="all" {% if filters.view == "all" %}selected{% endif %}>All</option>
         <option value="today" {% if filters.view == "today" %}selected{% endif %}>Today</option>
         <option value="upcoming" {% if filters.view == "upcoming" %}selected{% endif %}>Upcoming</option>
         <option value="overdue" {% if filters.view == "overdue" %}selected{% endif %}>Overdue</option>
       </select>
-      <select name="status" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
-        <option value="">Any status</option>
-        {% for value,label in status_choices %}
-          <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      <select name="priority" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+      {% include "tasks/partials/_filter_status_select.html" %}
+      <select name="priority" aria-label="Priority" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
         <option value="">Any priority</option>
         {% for value,label in priority_choices %}
           <option value="{{ value }}" {% if filters.priority == value %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
-      <select name="sort" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <select name="sort" aria-label="Sort by" class="h-9 rounded-md border border-stone-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">
         <option value="manual" {% if filters.sort == "manual" %}selected{% endif %}>Manual</option>
         <option value="due_date" {% if filters.sort == "due_date" %}selected{% endif %}>Due date</option>
         <option value="priority" {% if filters.sort == "priority" %}selected{% endif %}>Priority</option>

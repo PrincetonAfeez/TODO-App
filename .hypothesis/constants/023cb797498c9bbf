@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\__init__.py
+# hypothesis_version: 6.151.12
+
+['%s_%s', '********************', '_auth_user_backend', '_auth_user_hash', '_auth_user_id', 'auser', 'credentials', 'is_authenticated', 'next', 'user']

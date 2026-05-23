@@ -35,7 +35,7 @@ Table tasks_task {
   due_date timestamptz
   status varchar(8) [not null, default: 'open', note: 'open, done']
   priority varchar(8) [not null, default: 'medium', note: 'low, medium, high']
-  order int [not null, default: 0]
+  order int [not null, default: 0, note: 'PositiveIntegerField; no DB CHECK']
   recurrence_id bigint
   spawned_from_id bigint
   completed_at timestamptz
@@ -51,6 +51,8 @@ Table tasks_task {
     deleted_at
     (task_list_id, parent_id, order)
   }
+
+  Note: 'CHECK constraints task_status_valid and task_priority_valid match migration 0001.'
 }
 
 Table tasks_taskevent {
@@ -68,6 +70,8 @@ Table tasks_taskevent {
     task_id
     task_list_id
   }
+
+  Note: 'No DB CHECK on action; validated by TaskEventAction choices in Django.'
 }
 
 Ref: tasks_tasklist.id < tasks_task.task_list_id [delete: cascade]

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\middleware\common.py
+# hypothesis_version: 6.151.12
+
+[404, '%s/', '/', '<none>', '?', 'Broken %slink on %s', 'Content-Length', 'DELETE', 'Forbidden user agent', 'HTTP_REFERER', 'HTTP_USER_AGENT', 'INTERNAL ', 'PATCH', 'POST', 'PUT', 'REMOTE_ADDR', '^https?://%s/', 'method', 'should_append_slash', 'url', 'urlconf', 'www.']

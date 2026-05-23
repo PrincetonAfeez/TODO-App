@@ -23,6 +23,8 @@ from .models import (
     TaskStatus,
 )
 
+RECURRENCE_INTERVAL_MAX = 52
+
 
 class RestoreError(ValueError):
     """Raised when a task cannot be restored (e.g., its parent is still deleted)."""
@@ -93,6 +95,8 @@ def update_task(
 
 @transaction.atomic
 def toggle_task(task: Task) -> Task:
+    if task.deleted_at:
+        return task
     if task.status == TaskStatus.DONE:
         task.status = TaskStatus.OPEN
         task.completed_at = None
@@ -108,6 +112,8 @@ def toggle_task(task: Task) -> Task:
 
 @transaction.atomic
 def soft_delete_task(task: Task) -> None:
+    if task.deleted_at:
+        return
     deleted_at = timezone.now()
     for child in Task.objects.filter(parent=task):
         child.deleted_at = deleted_at
@@ -118,10 +124,15 @@ def soft_delete_task(task: Task) -> None:
 
 @transaction.atomic
 def restore_task(task: Task) -> Task:
-    if task.parent_id is not None and Task.objects.all_with_deleted().filter(
-        pk=task.parent_id,
-        deleted_at__isnull=False,
-    ).exists():
+    if (
+        task.parent_id is not None
+        and Task.objects.all_with_deleted()
+        .filter(
+            pk=task.parent_id,
+            deleted_at__isnull=False,
+        )
+        .exists()
+    ):
         raise RestoreError("Restore the parent first.")
     parent_deleted_at = task.deleted_at
     task.deleted_at = None
@@ -142,6 +153,7 @@ def reorder_tasks(
     task_list: TaskList,
     ordered_ids: Iterable[int],
     parent: Task | None = None,
+    include_deleted: bool = False,
 ) -> None:
     ids = [int(task_id) for task_id in ordered_ids if str(task_id).strip()]
     if not ids:
@@ -150,14 +162,23 @@ def reorder_tasks(
     if len(ids) != len(set(ids)):
         raise ValueError("Duplicate task ids in reorder payload.")
 
-    scope = Task.objects.filter(task_list=task_list, parent=parent, id__in=ids)
+    base_qs = Task.objects.all_with_deleted() if include_deleted else Task.objects
+    scope_qs = base_qs.filter(task_list=task_list, parent=parent)
+    scope_count = scope_qs.count()
+    if len(ids) != scope_count:
+        raise ValueError(
+            "Reorder payload must include every task in scope "
+            f"({len(ids)} given, {scope_count} expected)."
+        )
+
+    scope = scope_qs.filter(id__in=ids)
     found_ids = set(scope.values_list("id", flat=True))
     if found_ids != set(ids):
         missing = sorted(set(ids) - found_ids)
         raise ValueError(f"Task ids outside reorder scope: {missing}")
 
     for index, task_id in enumerate(ids):
-        Task.objects.filter(id=task_id).update(order=index)
+        base_qs.filter(id=task_id).update(order=index)
 
     TaskEvent.objects.create(
         task=None,
@@ -187,13 +208,17 @@ def set_recurrence(
     # action codes — see ADR 0003 / 0007 for the signal-vs-service split.
     recurrence = task.recurrence or Recurrence()
     recurrence.frequency = frequency
-    recurrence.interval = max(1, interval)
-    recurrence.weekday_mask = (
-        weekday_mask if frequency == RecurrenceFrequency.WEEKLY else None
-    )
-    recurrence.day_of_month = (
-        day_of_month if frequency == RecurrenceFrequency.MONTHLY else None
-    )
+    recurrence.interval = max(1, min(RECURRENCE_INTERVAL_MAX, interval))
+    if frequency == RecurrenceFrequency.WEEKLY:
+        if not weekday_mask:
+            raise ValueError("Weekly recurrence requires at least one weekday.")
+        recurrence.weekday_mask = weekday_mask
+    else:
+        recurrence.weekday_mask = None
+    if frequency == RecurrenceFrequency.MONTHLY:
+        recurrence.day_of_month = day_of_month
+    else:
+        recurrence.day_of_month = None
     recurrence.end_date = end_date
     recurrence.full_clean()
     recurrence.save()
@@ -221,17 +246,32 @@ def spawn_next_occurrence(task: Task) -> Task | None:
         return None
 
     recurrence = template.recurrence
-    base_due = task.due_date or timezone.now()
+    if recurrence is None:
+        return None
+
+    if task.recurrence_id:
+        open_spawn_exists = Task.objects.filter(
+            spawned_from=template,
+            status=TaskStatus.OPEN,
+            deleted_at__isnull=True,
+        ).exists()
+        if open_spawn_exists:
+            return None
+
+    base_due = _spawn_base_due(task, template)
     next_due = compute_next_due_date(base_due, recurrence)
     if next_due is None:
         return None
 
-    duplicate_exists = Task.objects.filter(
-        task_list=template.task_list,
-        spawned_from=template,
-        due_date=next_due,
-        status=TaskStatus.OPEN,
-    ).exists()
+    duplicate_exists = (
+        Task.objects.all_with_deleted()
+        .filter(
+            task_list=template.task_list,
+            spawned_from=template,
+            due_date=next_due,
+        )
+        .exists()
+    )
     if duplicate_exists:
         return None
 
@@ -259,6 +299,26 @@ def spawn_next_occurrence(task: Task) -> Task | None:
         },
     )
     return occurrence
+
+
+def _spawn_base_due(task: Task, template: Task):
+    """Stable anchor for next occurrence; avoids fresh now() on template re-complete."""
+    if task.due_date:
+        return task.due_date
+    if template.due_date:
+        return template.due_date
+    last_due = (
+        Task.objects.all_with_deleted()
+        .filter(spawned_from=template, due_date__isnull=False)
+        .order_by("-due_date")
+        .values_list("due_date", flat=True)
+        .first()
+    )
+    if last_due:
+        return last_due
+    if task.completed_at:
+        return task.completed_at
+    return timezone.now()
 
 
 def compute_next_due_date(base_due, recurrence: Recurrence):
@@ -318,6 +378,7 @@ def _export_filename(task_list: TaskList, extension: str) -> str:
 CSV_COLUMNS = [
     "id",
     "parent_id",
+    "spawned_from_id",
     "title",
     "notes",
     "status",
@@ -326,17 +387,23 @@ CSV_COLUMNS = [
     "due_date",
     "completed_at",
     "recurrence_frequency",
+    "recurrence_interval",
+    "recurrence_weekday_mask",
+    "recurrence_day_of_month",
+    "recurrence_end_date",
     "deleted_at",
     "created_at",
     "updated_at",
 ]
 
 
-def export_tasks(task_list: TaskList, *, fmt: str) -> ExportResult:
-    child_qs = Task.objects.all_with_deleted().ordered()
+def export_tasks(
+    task_list: TaskList, *, fmt: str, include_deleted: bool = False
+) -> ExportResult:
+    task_qs = Task.objects.all_with_deleted() if include_deleted else Task.objects
+    child_qs = task_qs.filter(task_list=task_list).ordered()
     tasks = (
-        Task.objects.all_with_deleted()
-        .filter(task_list=task_list, parent__isnull=True)
+        task_qs.filter(task_list=task_list, parent__isnull=True)
         .select_related("recurrence")
         .ordered()
         .prefetch_related(Prefetch("children", queryset=child_qs))
@@ -350,6 +417,9 @@ def export_tasks(task_list: TaskList, *, fmt: str) -> ExportResult:
             content_type="application/json",
             body=body,
         )
+
+    if fmt != "csv":
+        raise ValueError(f"Unsupported export format: {fmt}")
 
     buffer = io.StringIO()
     writer = csv.writer(buffer)
@@ -380,15 +450,14 @@ def _recurrence_to_json(recurrence: Recurrence | None) -> dict | None:
 def _task_to_json(task: Task) -> dict:
     return {
         "id": task.id,
+        "spawned_from_id": task.spawned_from_id,
         "title": task.title,
         "notes": task.notes,
         "status": task.status,
         "priority": task.priority,
         "order": task.order,
         "due_date": task.due_date.isoformat() if task.due_date else None,
-        "completed_at": (
-            task.completed_at.isoformat() if task.completed_at else None
-        ),
+        "completed_at": (task.completed_at.isoformat() if task.completed_at else None),
         "recurrence": _recurrence_to_json(task.recurrence),
         "deleted_at": task.deleted_at.isoformat() if task.deleted_at else None,
         "created_at": task.created_at.isoformat(),
@@ -398,10 +467,12 @@ def _task_to_json(task: Task) -> dict:
 
 
 def _write_task_csv_row(writer, task: Task) -> None:
+    recurrence = task.recurrence
     writer.writerow(
         [
             task.id,
             task.parent_id or "",
+            task.spawned_from_id or "",
             task.title,
             task.notes,
             task.status,
@@ -409,7 +480,15 @@ def _write_task_csv_row(writer, task: Task) -> None:
             task.order,
             task.due_date.isoformat() if task.due_date else "",
             task.completed_at.isoformat() if task.completed_at else "",
-            task.recurrence.frequency if task.recurrence_id else "",
+            recurrence.frequency if recurrence else "",
+            recurrence.interval if recurrence else "",
+            recurrence.weekday_mask if recurrence and recurrence.weekday_mask else "",
+            recurrence.day_of_month if recurrence and recurrence.day_of_month else "",
+            (
+                recurrence.end_date.isoformat()
+                if recurrence and recurrence.end_date
+                else ""
+            ),
             task.deleted_at.isoformat() if task.deleted_at else "",
             task.created_at.isoformat(),
             task.updated_at.isoformat(),

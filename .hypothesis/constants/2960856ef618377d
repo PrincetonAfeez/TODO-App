@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\operations\models.py
+# hypothesis_version: 6.151.12
+
+['%s_%s', '(default)', ', ', 'Create %smodel %s', 'Delete model %s', '_', '_meta', '_order', 'alter_%s', 'alter_%s_%s', 'alter_%s_managers', 'alter_%s_options', 'alter_%s_table', 'base_manager_name', 'bases', 'constraint', 'constraints', 'db_table', 'db_table_comment', 'default_manager_name', 'default_permissions', 'default_related_name', 'delete_%s', 'fields', 'get_latest_by', 'index', 'index_together', 'indexes', 'managed', 'managers', 'model_name', 'name', 'new_name', 'objects', 'old_fields', 'old_name', 'options', 'ordering', 'permissions', 'proxy', 'proxy ', 'remove_%s_%s', 'rename_%s_%s', 'rename_%s_%s_%s', 'select_on_save', 'table', 'table_comment', 'unique_together', 'verbose_name', 'verbose_name_plural']

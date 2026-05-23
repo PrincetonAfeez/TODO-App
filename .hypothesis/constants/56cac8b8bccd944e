@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\template\smartif.py
+# hypothesis_version: 6.151.12
+
+['!=', '(', '(%s %r)', ')', '<', '<=', '==', '>', '>=', 'and', 'in', 'is', 'is not', 'literal', 'not', 'not in', 'or']

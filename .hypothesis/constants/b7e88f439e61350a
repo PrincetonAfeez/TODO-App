@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\middleware\csrf.py
+# hypothesis_version: 6.151.12
+
+['%s:%s', '%s://%s', '*', '443', '80', 'CSRF cookie not set.', 'CSRF token missing.', 'CSRF_COOKIE', 'Cookie', 'Forbidden (%s): %s', 'GET', 'HEAD', 'HTTP_ORIGIN', 'HTTP_REFERER', 'OPTIONS', 'POST', 'TRACE', '[^a-zA-Z0-9]', '_csrftoken', 'csrf_exempt', 'csrf_processing_done', 'csrfmiddlewaretoken', 'django.security.csrf', 'has incorrect length', 'http', 'https', 'incorrect']

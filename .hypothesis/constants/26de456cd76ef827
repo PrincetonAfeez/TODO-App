@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\indexes.py
+# hypothesis_version: 6.151.12
+
+[' condition=%s', ' db_tablespace=%s', ' expressions=%s', ' fields=%s', ' include=%s', ' name=%s', ' opclasses=%s', '%(expressions)s', '%s', '%s.%s', '%s_%s', '%s_%s_%s', '(%(expressions)s)', ', ', '-', '-%s', '<%s:%s%s%s%s%s%s%s>', 'D%s', 'DESC', 'Index', '_', 'condition', 'db_tablespace', 'django.db.models', 'fields', 'idx', 'include', 'name', 'opclasses']

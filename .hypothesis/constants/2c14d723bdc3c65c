@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\tasks\urls.py
+# hypothesis_version: 6.151.12
+
+['clear_recurrence', 'create_subtask', 'create_task', 'delete_list', 'delete_task', 'edit_task', 'events', 'events/', 'export_csv', 'export_json', 'home', 'list_detail', 'lists', 'lists/', 'lists/<int:list_id>/', 'rename_list', 'reorder_subtasks', 'reorder_tasks', 'restore_task', 'set_recurrence', 'task_row', 'tasks', 'tasks/<int:task_id>/', 'toggle_task', 'update_task']

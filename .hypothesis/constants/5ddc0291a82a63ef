@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\schema.py
+# hypothesis_version: 6.151.12
+
+["'", "'%s'", "''", ', ', 'COLLATE ', 'DROP INDEX %(name)s', 'DROP TABLE %(table)s', 'Meta', 'NULL', 'New%s', "X'%s'", '__module__', 'app_label', 'apps', 'col', 'collation', 'constraints', 'db_table', 'default', 'id', 'indexes', 'new__%s', 'primary_key', 'table', 'type', 'unique_together']

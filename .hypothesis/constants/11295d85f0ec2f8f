@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\operations\special.py
+# hypothesis_version: 6.151.12
+
+['Raw Python operation', 'Raw SQL operation', 'atomic', 'code', 'database_operations', 'hints', 'reverse_code', 'reverse_sql', 'sql', 'state_operations']

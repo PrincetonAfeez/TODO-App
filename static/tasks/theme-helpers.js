@@ -41,6 +41,20 @@
 
   function initThemeFromCookie() {
     applyTheme(readThemeCookie());
+    if (typeof window === "undefined" || !window.matchMedia) {
+      return;
+    }
+    var media = window.matchMedia("(prefers-color-scheme: dark)");
+    var onSystemThemeChange = function () {
+      if (readThemeCookie() === "system") {
+        applyTheme("system");
+      }
+    };
+    if (media.addEventListener) {
+      media.addEventListener("change", onSystemThemeChange);
+    } else if (media.addListener) {
+      media.addListener(onSystemThemeChange);
+    }
   }
 
   return {

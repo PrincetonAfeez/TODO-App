@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\coverage\sqlitedb.py
+# hypothesis_version: 6.151.12
+
+[100, ':', 'REGEXP', 'file:', 'sql', 'sqldata']

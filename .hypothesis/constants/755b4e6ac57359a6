@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\pytest_django\live_server_helper.py
+# hypothesis_version: 6.151.12
+
+[':', 'append', 'connections_override', 'port', 'sqlite', 'static_handler']

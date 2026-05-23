@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\__init__.py
+# hypothesis_version: 6.151.12
+
+['AdminSite', 'DateFieldListFilter', 'EmptyFieldListFilter', 'FieldListFilter', 'HORIZONTAL', 'ListFilter', 'ModelAdmin', 'ShowFacets', 'SimpleListFilter', 'StackedInline', 'TabularInline', 'VERTICAL', 'action', 'admin', 'autodiscover', 'display', 'register', 'site']

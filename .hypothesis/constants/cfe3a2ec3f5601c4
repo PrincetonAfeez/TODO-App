@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\sql\compiler.py
+# hypothesis_version: 6.151.12
+
+[' ALL', ' {} ', '%s', '%s %s', '%s = %s', '%s = NULL', '%s AS %s', '%s.%s', "'%s'", '(%s)', '(none)', '({})', ')', '*', ', ', ', %s', '.', '0', '0 = 1', '?', 'ASC', 'DELETE FROM %s', 'DESC', 'FROM', 'FROM (', 'GROUP BY %s', 'HAVING %s', 'ORDER BY', 'ORDER BY %s', 'SELECT', 'SELECT * FROM (', 'SELECT * FROM ({})', 'UPDATE %s SET', 'VALUES (%s)', 'WHERE', 'WHERE %s', 'alias', 'as_', 'as_sql', 'attname', 'difference', 'field', 'from_parent', 'get_placeholder', 'has_transforms', 'join_cols', 'json', 'local_setter', 'model', 'pk', 'pk__in', 'qualify', 'qualify_mask', 'related_klass_infos', 'remote_setter', 'resolve_expression', 'reverse', 'select_fields', 'self', 'subquery', 'supports_select_{}', 'target', 'union', '{}']

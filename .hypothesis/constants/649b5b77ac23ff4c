@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\templatetags\i18n.py
+# hypothesis_version: 6.151.12
+
+['%', '%%', '%%(%s)s', '%s', "'%s'", 'as', 'asvar', 'bidi', 'blocktrans', 'blocktranslate', 'context', 'count', 'end%s', 'endlanguage', 'for', 'get_current_language', 'get_language_info', 'name', 'name_local', 'noop', 'plural', 'trans', 'translate', 'trimmed', 'with']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\management\commands\createcachetable.py
+# hypothesis_version: 6.151.12
+
+[255, '    %s%s', '%sNULL', '%s_%s', ');', '*', ',', '--database', '--dry-run', 'CREATE TABLE %s (', 'NOT ', 'PRIMARY KEY', 'UNIQUE', 'UNIQUE ', 'args', 'cache_key', 'database', 'dry_run', 'expires', 'store_true', 'table_name', 'value', 'verbosity']

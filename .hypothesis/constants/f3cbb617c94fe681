@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\middleware\security.py
+# hypothesis_version: 6.151.12
+
+[',', '/', '; includeSubDomains', '; preload', 'Referrer-Policy', 'https://%s%s', 'max-age=%s', 'nosniff']

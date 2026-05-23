@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\operations\base.py
+# hypothesis_version: 6.151.12
+
+[' %s=%r', '%s: %s', '+', ',', ', ', '-', '<%s %s%s>', '?', 'p', 's', '~']

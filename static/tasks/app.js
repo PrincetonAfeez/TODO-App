@@ -285,15 +285,21 @@
   });
 
   function resetNewTaskForm(trigger) {
-    if (!trigger?.closest?.("#new-task-form")) return;
-    var form = document.getElementById("new-task-form");
-    if (!form) return;
-    form.reset();
-    var details = form.querySelector("[data-new-task-details]");
-    if (details) {
-      details.open = false;
+    if (!trigger?.closest) return;
+    var newTaskForm = trigger.closest("#new-task-form");
+    if (newTaskForm) {
+      newTaskForm.reset();
+      var details = newTaskForm.querySelector("[data-new-task-details]");
+      if (details) {
+        details.open = false;
+      }
+      newTaskForm.querySelector("[data-new-task-input]")?.focus();
+      return;
     }
-    form.querySelector("[data-new-task-input]")?.focus();
+    var subtaskForm = trigger.closest("[id^='subtask-form-']");
+    if (!subtaskForm) return;
+    subtaskForm.reset();
+    subtaskForm.querySelector('input[name="title"]')?.focus();
   }
 
   document.body.addEventListener("htmx:beforeSwap", (event) => {
@@ -318,6 +324,17 @@
     if (event.detail.xhr?.getResponseHeader("HX-Trigger")) {
       return;
     }
+    var requestPath = event.detail.pathInfo?.requestPath || "";
+    if (requestPath.includes("/reorder") && window.htmx) {
+      window.htmx.ajax(
+        "GET",
+        window.location.pathname + window.location.search,
+        {
+          target: "#task-list-frame",
+          swap: "outerHTML",
+        }
+      );
+    }
     var checkbox = event.detail.elt;
     if (rollbackOptimisticToggle) {
       rollbackOptimisticToggle(checkbox);
@@ -337,6 +354,6 @@
 
   document.body.addEventListener("showToast", (event) => {
     var payload = event.detail?.value || event.detail || {};
-    showToast(payload.message || payload, false);
+    showToast(payload.message || payload, Boolean(payload.error));
   });
 })();

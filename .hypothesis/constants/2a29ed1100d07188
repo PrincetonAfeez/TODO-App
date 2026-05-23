@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\migrations\0001_initial.py
+# hypothesis_version: 6.151.12
+
+[200, '-action_time', 'ID', 'LogEntry', '__first__', 'action flag', 'action time', 'action_flag', 'action_time', 'change message', 'change_message', 'content type', 'content_type', 'contenttypes', 'db_table', 'django_admin_log', 'id', 'log entries', 'log entry', 'object id', 'object repr', 'object_id', 'object_repr', 'objects', 'ordering', 'user', 'verbose_name', 'verbose_name_plural']

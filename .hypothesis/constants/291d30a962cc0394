@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\checks\caches.py
+# hypothesis_version: 6.151.12
+
+['LOCATION', 'MEDIA_ROOT', 'STATICFILES_DIRS', 'STATIC_ROOT', 'caches.E001', 'caches.W002', 'caches.W003', 'contains', 'is inside', 'matches']

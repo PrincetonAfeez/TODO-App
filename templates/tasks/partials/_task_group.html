@@ -6,7 +6,7 @@
   {% include "tasks/partials/_task_row.html" with task=task %}
   <div
     class="subtask-list border-t border-stone-100 bg-stone-50/70 dark:border-zinc-800 dark:bg-zinc-950/50"
-    data-sortable-list
+    {% if reorder_enabled %}data-sortable-list{% endif %}
     data-reorder-url="{% url 'tasks:reorder_subtasks' task.id %}"
   >
     {% for child in task.children.all %}

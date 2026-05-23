@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\operations.py
+# hypothesis_version: 6.151.12
+
+[-9223372036854775808, 500, 512, 999, 9223372036854775807, '"', '"%s"', '#', '%s %s %s;', '%s.%s', "'%s'", '("|\\\')?\\s*\\(', '*', '+', ',', ', ', '-', '/', 'BITXOR(%s)', 'BooleanField', 'DELETE', 'DateField', 'DateTimeField', 'DecimalField', 'EXPLAIN QUERY PLAN', 'FROM', 'GROUP BY TRUE', 'IN', 'NULL', 'POWER(%s)', 'PositiveIntegerField', 'QUOTE(?)', 'RETURNING %s', 'SELECT ', 'SET', 'TEXT', 'TimeField', 'UPDATE', 'UUIDField', 'WHERE', '^', 'false', 'name', 'null', 'seq', 'sqlite_sequence', 'table', 'text', 'true']

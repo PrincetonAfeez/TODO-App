@@ -14,10 +14,12 @@
       <span class="rounded px-1.5 py-0.5 text-xs font-medium {% if task.priority == 'high' %}bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300{% elif task.priority == 'low' %}bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300{% else %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300{% endif %}">{{ task.get_priority_display }}</span>
       <span id="subtask-count-{{ task.id }}" class="rounded bg-stone-100 px-1.5 py-0.5 text-xs text-stone-600 dark:bg-zinc-800 dark:text-stone-300{% if not task.subtask_total %} hidden{% endif %}">{{ task.subtask_done_count }}/{{ task.subtask_total }}</span>
       {% if task.recurrence %}
-        <span class="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+        <span id="recurrence-badge-{{ task.id }}" class="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
           <i data-lucide="repeat-2" class="h-3 w-3"></i>
           {{ task.recurrence.get_frequency_display }}
         </span>
+      {% else %}
+        <span id="recurrence-badge-{{ task.id }}" class="hidden"></span>
       {% endif %}
       {% if task.is_deleted %}
         <span class="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-700 dark:bg-red-950 dark:text-red-300">Deleted</span>
@@ -40,7 +42,7 @@
         </span>
       {% endif %}
     </div>
-    {% if not task.is_deleted %}
+    {% if not task.is_deleted and not task.spawned_from %}
       <details class="mt-3" id="recurrence-panel-{{ task.id }}">
         <summary class="cursor-pointer text-xs font-medium text-emerald-700 dark:text-emerald-300">Recurrence</summary>
         {% include "tasks/partials/_recurrence_form.html" with task=task form=recurrence_form %}

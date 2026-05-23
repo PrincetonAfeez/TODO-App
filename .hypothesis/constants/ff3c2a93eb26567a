@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\deletion.py
+# hypothesis_version: 6.151.12
+
+["'%s.%s'", ', ', '_meta', '_raw_delete', 'bulk_related_objects', 'django.db.models.SET', 'lazy_sub_objs', 'model', 'pk']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\serializers\base.py
+# hypothesis_version: 6.151.12
+
+[100, '.', '<%s: %s(pk=%s)>', '[', ']', '__iter__', 'get_by_natural_key', 'getvalue', 'natural_key']

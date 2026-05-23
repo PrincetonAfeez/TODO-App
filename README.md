@@ -1,4 +1,6 @@
-# To-Do
+# To-Do App
+
+**Evaluators:** start with [`docs/START_HERE.md`](docs/START_HERE.md).
 
 A session-scoped Django 5 + HTMX task manager built from `To-Do App.txt`.
 It uses SQLite for development, keeps views thin, puts orchestration in
@@ -48,8 +50,9 @@ Activate the project virtualenv first. Examples below use `.venv` in the repo ro
 Useful commands (PowerShell paths shown; on Bash replace with `.venv/bin/python`):
 
 ```powershell
-.\.venv\Scripts\python -m pytest
-.\.venv\Scripts\python -m pytest --cov=tasks --cov-report=term-missing
+.\.venv\Scripts\python -m pytest -m "not e2e"
+.\.venv\Scripts\python -m pytest -m "not e2e" --cov=tasks --cov-report=term-missing --cov-fail-under=90
+.\.venv\Scripts\python -m mypy tasks/services.py tasks/models.py
 .\.venv\Scripts\python -m ruff check .
 .\.venv\Scripts\python -m black --check config tasks
 node --test static/tasks/toggle-helpers.test.js static/tasks/theme-helpers.test.js
@@ -58,8 +61,9 @@ make e2e
 .\.venv\Scripts\python manage.py seed --force
 ```
 
-`make run`, `make test`, `make cov`, `make lint`, `make migrate`, and `make seed`
-work on any shell with `make` installed (uses `python` from your `PATH`; activate
+`make run`, `make test`, `make cov`, `make typecheck`, `make lint`, `make js-test`, `make e2e`,
+`make format`, `make migrate`, and `make seed` work on any shell with `make`
+installed (uses `python` from your `PATH`; activate
 the venv first or set `PYTHON=.venv/bin/python` / `PYTHON=.venv/Scripts/python`).
 
 Demo data is seeded under session key `seed-session` (overdue, deleted,
@@ -168,6 +172,10 @@ erDiagram
 - Audit events from signals for implicit model changes and services for reorder/spawn.
 - Tailwind UI with HTMX partials, dark mode, toasts, SortableJS, and keyboard shortcuts.
 - ADRs in `docs/adr/` documenting the main architectural decisions.
+- Edge-case catalog in `docs/edge-cases.md` (recurrence, audit, HTMX, reorder).
+- Accessibility notes in `docs/accessibility.md` (axe scans on three pages in CI).
+- Schema reference in `Schema/` guarded by `tasks/test_schema_reference.py`.
+- Extended TDD reference in `todo_app_docs.md` (optional; see `docs/START_HERE.md` first).
 
 ## Design tradeoffs
 
@@ -177,7 +185,7 @@ erDiagram
 | Delete | Soft delete + custom manager | Tasks stay recoverable and auditable; default queryset stays simple. |
 | Audit | Signals for diffs, services for intent | Saves capture most edits; reorder/spawn record one meaningful event (ADR 0003). |
 | Audit noise | Suppress redundant `updated` events | Toggle/delete/restore emit one lifecycle event, not two (ADR 0007). |
-| HTMX targets | `_task_group.html` for parent mutations | Refreshes row + subtasks in one swap (ADR 0006). |
+| HTMX targets | `_task_group.html` for toggle/delete/restore; `_task_list.html` for create | Row + subtasks stay in sync; create refreshes full list frame (ADR 0006). |
 | Sidebar counts | `annotate(Count)` + HTMX OOB | Counts open tasks only; avoids N+1 and keeps badges fresh (ADR 0008). |
 | Timezone | Visitor cookie + middleware | Due dates and recurrence math follow the browser zone without user accounts. |
 | Notifications | Messages for redirects, toasts for HTMX | Each transport gets appropriate feedback; see ADR 0009. |

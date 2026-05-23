@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\utils\encoding.py
+# hypothesis_version: 6.151.12
+
+[b'%', b"/#%[]=:;$&()+,!?*@'~", 123, 126, '%02X', '%02x', '/', "/#%[]=:;$&()+,!?*@'~", "/:@&+$,-_.!~*'()", "/~!*()'", '\\', 'ascii', 'idna', 'strict', 'utf-8']

@@ -1,3 +1,30 @@
 {
-    "git.ignoreLimitWarning": true
+  // Git / Source Control — workspace root must be this folder (contains .git).
+  "git.enabled": true,
+  "git.autorefresh": true,
+  "git.autoRepositoryDetection": true,
+  "git.openRepositoryInParentFolders": "never",
+  "git.repositoryScanMaxDepth": 2,
+  "git.ignoreLimitWarning": true,
+  "git.enableSmartCommit": true,
+  "scm.defaultViewMode": "tree",
+
+  // Python — use the project venv when present.
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+
+  // Keep file watchers off generated / vendor paths.
+  "files.watcherExclude": {
+    "**/.venv/**": true,
+    "**/__pycache__/**": true,
+    "**/.pytest_cache/**": true,
+    "**/.ruff_cache/**": true,
+    "**/staticfiles/**": true
+  },
+  "search.exclude": {
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true
+  }
 }

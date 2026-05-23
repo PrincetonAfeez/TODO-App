@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\views\generic\detail.py
+# hypothesis_version: 6.151.12
+
+['%s/%s%s.html', '_detail', 'cls', 'model', 'object', 'pk', 'slug', 'verbose_name']

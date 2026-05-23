@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\base_user.py
+# hypothesis_version: 6.151.12
+
+[128, '@', 'NFKC', 'email', 'last login', 'password', 'sha256']

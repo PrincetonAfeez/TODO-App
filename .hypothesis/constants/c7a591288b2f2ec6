@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\views\main.py
+# hypothesis_version: 6.151.12
+
+['%s__day', '%s__gte', '%s__lt', '%s__month', '%s__year', ', ', '-', '-pk', '.', '?%s', 'Select %s', 'Select %s to change', 'Select %s to view', 'admin:%s_%s_change', 'admin_order_field', 'all', 'asc', 'desc', 'e', 'fget', 'o', 'p', 'pk', 'q', 'request', 'resolve_expression']

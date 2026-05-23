@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\fields\generated.py
+# hypothesis_version: 6.151.12
+
+['GeneratedField', 'SQLCompiler', 'blank', 'conditional', 'databases', 'db_default', 'db_persist', 'default', 'editable', 'expression', 'fields.E220', 'fields.E221', 'fields.E222', 'fields.E223', 'fields.W224', 'output_field']

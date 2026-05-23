@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\utils\timesince.py
+# hypothesis_version: 6.151.12
+
+['%(num)d day', '%(num)d days', '%(num)d hour', '%(num)d hours', '%(num)d minute', '%(num)d minutes', '%(num)d month', '%(num)d months', '%(num)d week', '%(num)d weeks', '%(num)d year', '%(num)d years', ', ', 'day', 'hour', 'minute', 'month', 'num', 'week', 'year']

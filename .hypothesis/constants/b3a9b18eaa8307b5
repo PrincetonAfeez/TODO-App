@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\tasks\models.py
+# hypothesis_version: 6.151.12
+
+[120, 127, 255, '-created_at', 'Completed', 'Created', 'Daily', 'Done', 'High', 'Low', 'Medium', 'Monthly', 'Open', 'Reopened', 'Reordered', 'Restored', 'Soft deleted', 'Spawned', 'Updated', 'Weekly', 'all', 'children', 'completed', 'created', 'created_at', 'daily', 'day', 'day_of_month', 'days', 'deleted_at', 'done', 'due_date', 'events', 'high', 'interval', 'low', 'manual', 'medium', 'month', 'monthly', 'months', 'name', 'open', 'order', 'overdue', 'parent', 'priority', 'priority_rank', 'recurrence', 'reopened', 'reordered', 'restored', 'self', 'session_key', 'soft_deleted', 'spawned', 'spawned_occurrences', 'status', 'task_list', 'task_priority_valid', 'task_status_valid', 'tasks', 'template_tasks', 'today', 'upcoming', 'updated', 'week', 'weekday_mask', 'weekly', 'weeks']

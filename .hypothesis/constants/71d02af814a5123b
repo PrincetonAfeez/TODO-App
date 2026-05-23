@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\helpers.py
+# hypothesis_version: 6.151.12
+
+['#%s', ', ', '<a href="{}">{}</a>', '<lambda>', 'Action:', 'Remove', '__html__', '__iter__', '_selected_action', 'addText', 'admin:%s_%s_change', 'boolean', 'class', 'collapse', 'deleteText', 'dependencies', 'field', 'fk', 'help_text', 'inline', 'is_hidden', 'label', 'name', 'options', 'prefix', 'read_only', 'required', 'select-across', 'vCheckboxLabel', 'verbose_name', 'widget']

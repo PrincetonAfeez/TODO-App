@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py
+# hypothesis_version: 6.151.12
+
+[400, '%s: %s', 'ATOMIC_REQUESTS', 'The view %s.%s', '_non_atomic_requests', 'async_capable', 'django.request', 'method %s()', 'middleware %s', 'process_exception', 'process_view', 'render', 'sync_capable', 'urlconf']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\utils.py
+# hypothesis_version: 6.151.12
+
+[b'":/_#?;@&=+$,"[]<>%\n\\', '%s: %s', '%s:%s_%s_change', '+', ',', ', ', '--', '0', '<a href="{}">{}</a>', '<lambda>', '_%02X', '_(?:%s)', '__in', '__isnull', '__str__', 'added', 'app_label', 'attname', 'changed', 'class', 'deleted', 'false', 'fget', 'fields', 'flatchoices', 'help_text', 'model', 'name', 'object', 'path_infos', 'pk', 'short_description', 'verbose_name', 'verbose_name_plural', '|']

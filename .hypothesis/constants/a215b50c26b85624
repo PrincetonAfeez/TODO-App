@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\templatetags\admin_modify.py
+# hypothesis_version: 6.151.12
+
+['#%s', 'add', 'adminform', 'allowUnicode', 'allow_unicode', 'can_change', 'change', 'dependencies', 'dependency_ids', 'dependency_list', 'field', 'has_add_permission', 'has_view_permission', 'id', 'is_hidden', 'is_popup', 'maxLength', 'name', 'prepopulated_fields', 'save_as', 'show_close', 'show_delete', 'show_delete_link', 'show_save', 'show_save_as_new', 'submit_line.html', 'submit_row']

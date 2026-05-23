@@ -40,7 +40,7 @@
           </span>
           <span>To-Do</span>
         </a>
-        <nav class="flex items-center gap-2">
+        <nav class="flex items-center gap-2" aria-label="Site">
           <a href="{% url 'tasks:events' %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
             <i data-lucide="activity" class="h-4 w-4"></i>
             Events
@@ -53,7 +53,10 @@
     {% if messages %}
       <div class="mx-auto max-w-7xl space-y-2 px-4 pt-3">
         {% for message in messages %}
-          <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100" role="alert">
+          <div
+            class="rounded-md border px-4 py-3 text-sm {% if 'error' in message.tags %}border-red-200 bg-red-50 text-red-900 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100{% endif %}"
+            role="alert"
+          >
             {{ message }}
           </div>
         {% endfor %}

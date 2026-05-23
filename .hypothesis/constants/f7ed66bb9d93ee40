@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\middleware.py
+# hypothesis_version: 6.151.12
+
+['HTTP_', 'REMOTE_USER', '_acached_user', '_cached_user', 'login_required', 'login_url', 'redirect_field_name', 'session', 'user']

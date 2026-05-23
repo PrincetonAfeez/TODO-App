@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\views\generic\__init__.py
+# hypothesis_version: 6.151.12
+
+['ArchiveIndexView', 'CreateView', 'DateDetailView', 'DayArchiveView', 'DeleteView', 'DetailView', 'FormView', 'GenericViewError', 'ListView', 'MonthArchiveView', 'RedirectView', 'TemplateView', 'TodayArchiveView', 'UpdateView', 'View', 'WeekArchiveView', 'YearArchiveView']

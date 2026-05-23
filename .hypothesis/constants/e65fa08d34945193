@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\tasks\admin.py
+# hypothesis_version: 6.151.12
+
+['action', 'created_at', 'day_of_month', 'deleted_at', 'due_date', 'end_date', 'frequency', 'interval', 'name', 'notes', 'priority', 'session_key', 'status', 'task', 'task__title', 'task_list', 'task_list__name', 'title', 'weekday_mask']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\admin\migrations\0002_logentry_remove_auto_add.py
+# hypothesis_version: 6.151.12
+
+['0001_initial', 'action time', 'action_time', 'admin', 'logentry']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\views\generic\edit.py
+# hypothesis_version: 6.151.12
+
+['POST', 'PUT', '_confirm_delete', '_form', 'data', 'files', 'form', 'initial', 'instance', 'object', 'prefix']

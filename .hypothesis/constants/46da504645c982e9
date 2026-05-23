@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\base\creation.py
+# hypothesis_version: 6.151.12
+
+[2000, " ('%s')", '%s for alias %s...', "'%s'%s", '.', 'Creating', 'DROP DATABASE %s', 'Destroying', 'ENGINE', 'HOST', 'MIGRATE', 'NAME', 'PORT', 'Preserving', 'TEST', 'Tests cancelled.', 'Using existing', 'Using existing clone', 'createcachetable', 'dbname', 'json', 'migrate', 'suffix', 'test_', 'true', 'yes', '{}_{}']

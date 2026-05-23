@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\checks\__init__.py
+# hypothesis_version: 6.151.12
+
+['CRITICAL', 'CheckMessage', 'Critical', 'DEBUG', 'Debug', 'ERROR', 'Error', 'INFO', 'Info', 'Tags', 'WARNING', 'Warning', 'register', 'run_checks', 'tag_exists']

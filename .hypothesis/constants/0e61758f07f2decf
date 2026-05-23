@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\operations\fields.py
+# hypothesis_version: 6.151.12
+
+['%s_%s', 'Add field %s to %s', 'Alter field %s on %s', 'alter_%s_%s', 'field', 'from_fields', 'model_name', 'name', 'new_name', 'old_name', 'preserve_default', 'remove_%s_%s', 'rename_%s_%s_%s']

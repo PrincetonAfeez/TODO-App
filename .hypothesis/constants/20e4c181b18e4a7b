@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\views\generic\list.py
+# hypothesis_version: 6.151.12
+
+['%s/%s%s.html', '%s_list', '_list', 'class_name', 'cls', 'exists', 'is_paginated', 'last', 'message', 'model', 'object_list', 'page', 'page_number', 'page_obj', 'paginator']

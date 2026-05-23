@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\fields\composite.py
+# hypothesis_version: 6.151.12
+
+['blank', 'db_column', 'db_default', 'default', 'editable', 'fields.E013', 'pk', 'primary_key']

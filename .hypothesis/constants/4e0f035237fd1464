@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\executor.py
+# hypothesis_version: 6.151.12
+
+['apply_start', 'apply_success', 'apps', 'render_start', 'render_success', 'unapply_start', 'unapply_success']

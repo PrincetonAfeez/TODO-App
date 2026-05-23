@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\conf\urls\__init__.py
+# hypothesis_version: 6.151.12
+
+['handler400', 'handler403', 'handler404', 'handler500', 'include']

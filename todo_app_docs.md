@@ -3,6 +3,10 @@
 **Task Management Group | Document 1 of 5**
 **Status: Accepted**
 
+> **Note:** For grading and quick review, start with [`docs/START_HERE.md`](docs/START_HERE.md).
+> This file is extended reference. When it conflicts with `docs/edge-cases.md` or
+> the code, trust the code and edge-case catalog first.
+
 ---
 
 ## Context
@@ -109,7 +113,9 @@ The decision was to build a Django monolith with thin views, service-layer orche
 
 ### Decision 10 — HTMX partials and out-of-band swaps
 
-**Chosen:** HTMX requests return task rows, task groups, form partials, sidebar-count OOB fragments, empty-state OOB fragments, and toast triggers.
+**Chosen:** HTMX requests return task rows, task groups, the full task-list frame
+(on create), form partials, filter-control OOB fragments, sidebar-count OOB
+fragments, empty-state OOB fragments, and toast triggers.
 
 **Rejected:** Full-page refresh after every task action or a JavaScript SPA.
 
@@ -527,9 +533,11 @@ Computes the next daily, weekly, or monthly occurrence. Monthly recurrence clamp
 
 ---
 
-### `export_tasks(task_list, fmt)`
+### `export_tasks(task_list, fmt, include_deleted=False)`
 
-Exports all tasks in the list, including deleted tasks. CSV is flat. JSON nests subtasks.
+Exports tasks in the list. By default uses the active manager (no soft-deleted
+rows). Pass `include_deleted=True` or `?show_deleted=1` on export views to
+include deleted rows. CSV is flat; JSON nests subtasks under parents.
 
 ---
 
@@ -545,11 +553,15 @@ Renders list management or creates a new list. HTMX creation returns the sidebar
 
 ### `list_detail`
 
-Renders list detail. Supports `view`, `status`, `priority`, `sort`, `q`, and `show_deleted`. HTMX returns only the task-list partial.
+Renders list detail. Supports `view`, `status`, `priority`, `sort`, `q`, and
+`show_deleted`. HTMX GET returns `_task_list.html` plus OOB swaps for filter
+controls and `#new-task-form` when applicable.
 
 ### `create_task_view`
 
-Creates a top-level task and returns a task-group partial for HTMX.
+Creates a top-level task. HTMX success returns `_task_list.html` into
+`#task-list-frame` (not `_task_group.html`), with OOB filter/new-form updates.
+See ADR 0006 and `docs/edge-cases.md`.
 
 ### `update_task_view`
 
@@ -628,6 +640,10 @@ Development/testing:
 - pytest-cov
 - pytest-playwright
 - Playwright
+- axe-playwright-python
+- Hypothesis
+- mypy
+- django-stubs
 - Ruff
 - Black
 
@@ -676,7 +692,16 @@ The app is synchronous Django. Services use `transaction.atomic()` around import
 
 ## Verification Summary
 
-Tests cover soft delete, subtask depth, toggle complete/reopen, recurrence spawning, reorder scope, audit events, HTMX partials, sidebar OOB counts, timezone middleware, exports, restore behavior, DST recurrence, event filters/pagination, duplicate list names, recurrence forms, invalid reorder, JavaScript helpers, and Playwright E2E flows.
+Tests cover soft delete, subtask depth, toggle complete/reopen, recurrence
+spawning, Hypothesis recurrence date math, reorder scope, audit events, HTMX
+partials, sidebar OOB counts, timezone middleware, exports (with `show_deleted`),
+restore behavior, DST recurrence, event filters/pagination, duplicate list names,
+recurrence forms, invalid reorder, status-filter/date-view behavior, JavaScript
+helpers, Playwright E2E flows, and axe accessibility scans on three pages.
+
+CI (`.github/workflows/ci.yml`) runs ruff, black, mypy on `tasks/models.py` and
+`tasks/services.py`, Node helper tests, pytest with `--cov-fail-under=90`, and
+Playwright e2e (including `tests_a11y_e2e.py`).
 
 ---
 
@@ -731,20 +756,25 @@ Tests cover soft delete, subtask depth, toggle complete/reopen, recurrence spawn
 ### Test
 
 ```powershell
-.\\.venv\\Scripts\\python -m pytest
+.\\.venv\\Scripts\\python -m pytest -m "not e2e"
 ```
 
 ### Coverage
 
 ```powershell
-.\\.venv\\Scripts\\python -m pytest --cov=tasks --cov-report=term-missing
+.\\.venv\\Scripts\\python -m pytest -m "not e2e" --cov=tasks --cov-report=term-missing --cov-fail-under=90
+```
+
+### Types
+
+```powershell
+.\\.venv\\Scripts\\python -m mypy tasks/services.py tasks/models.py
 ```
 
 ### Lint and format
 
 ```powershell
-.\\.venv\\Scripts\\python -m ruff check .
-.\\.venv\\Scripts\\python -m black --check config tasks
+make lint
 ```
 
 ### JavaScript tests
@@ -753,10 +783,11 @@ Tests cover soft delete, subtask depth, toggle complete/reopen, recurrence spawn
 node --test static/tasks/toggle-helpers.test.js static/tasks/theme-helpers.test.js
 ```
 
-### E2E
+### E2E (smoke + axe)
 
 ```bash
 make e2e
+# or: python -m pytest -m e2e
 ```
 
 ### Seed
@@ -790,7 +821,7 @@ make e2e
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `frequency` | choice | Yes | `daily`, `weekly`, `monthly` |
-| `interval` | integer | Yes | Minimum 1 |
+| `interval` | integer | Yes | Minimum 1; maximum 52 (form + `max="52"` on input) |
 | `weekdays` | list | Weekly only | Bit values 1,2,4,8,16,32,64 |
 | `day_of_month` | integer | Monthly only | 1 through 31 |
 | `end_date` | date | No | Optional cutoff |
@@ -807,11 +838,13 @@ make e2e
 
 Accepted:
 - `view`: `all`, `today`, `upcoming`, `overdue`
-- `status`: `open`, `done`
+- `status`: `open`, `done` — **applied only when `view=all`**; Today/Upcoming/Overdue are open-task views and the status control is disabled in the UI
 - `priority`: `low`, `medium`, `high`
 - `sort`: `manual`, `due_date`, `priority`, `created_at`
-- `q`: title substring
+- `q`: title or notes substring (top-level tasks only)
 - `show_deleted`: `1`
+
+Export URLs on list detail append `?show_deleted=1` when the show-deleted toggle is active.
 
 ### Events
 
@@ -827,7 +860,10 @@ HTMX responses may include:
 - `HX-Trigger` for `showToast`
 - out-of-band sidebar count fragments
 - out-of-band empty-state fragments
-- task row/group partials
+- out-of-band filter status select and new-task form (filter/create flows)
+- `_task_list.html` for create and filter GET (target `#task-list-frame`)
+- `_task_group.html` for top-level toggle/delete/restore
+- `_task_row.html` / `_subtask_row.html` for edit save and subtask mutations
 - HTTP 204 for reorder success
 - HTTP 422 for invalid form partials
 
@@ -847,15 +883,25 @@ Content type:
 text/csv
 ```
 
-Columns:
+Columns (see `CSV_COLUMNS` in `tasks/services.py`):
 - id
 - parent_id
+- spawned_from_id
 - title
+- notes
 - status
 - priority
+- order
 - due_date
+- completed_at
+- recurrence_frequency
+- recurrence_interval
+- recurrence_weekday_mask
+- recurrence_day_of_month
+- recurrence_end_date
 - deleted_at
 - created_at
+- updated_at
 
 ### JSON export
 
@@ -864,17 +910,23 @@ Content type:
 application/json
 ```
 
-Shape:
+Shape (per top-level task; subtasks nested):
 ```json
 [
   {
     "id": 1,
+    "spawned_from_id": null,
     "title": "Parent",
     "notes": "",
     "status": "open",
     "priority": "medium",
+    "order": 0,
     "due_date": null,
+    "completed_at": null,
+    "recurrence": null,
     "deleted_at": null,
+    "created_at": "2024-06-01T12:00:00+00:00",
+    "updated_at": "2024-06-01T12:00:00+00:00",
     "subtasks": []
   }
 ]
@@ -898,8 +950,8 @@ Shape:
 
 - `.env`: optional local environment file
 - `requirements.txt`: runtime and test dependencies
-- `pyproject.toml`: Black, Ruff, pytest, coverage config
-- `Makefile`: common commands
+- `pyproject.toml`: Black, Ruff, pytest, coverage (`fail_under = 90`), mypy, django-stubs
+- `Makefile`: `run`, `test`, `cov`, `typecheck`, `lint`, `js-test`, `e2e`, `migrate`, `seed`
 
 ---
 
@@ -932,6 +984,7 @@ python manage.py seed --force
 ```text
 /lists/<id>/export.csv
 /lists/<id>/export.json
+/lists/<id>/export.csv?show_deleted=1
 ```
 
 ### Filter overdue high-priority tasks
@@ -1052,7 +1105,8 @@ Production behavior:
 
 ```powershell
 python -m pytest
-python -m pytest --cov=tasks --cov-report=term-missing
+python -m pytest -m "not e2e" --cov=tasks --cov-report=term-missing --cov-fail-under=90
+python -m mypy tasks/services.py tasks/models.py
 python -m ruff check .
 python -m black --check config tasks
 node --test static/tasks/toggle-helpers.test.js static/tasks/theme-helpers.test.js
@@ -1256,7 +1310,7 @@ python -m pip install -r requirements.txt
 
 ```powershell
 python -m playwright install chromium
-python -m pytest tasks/tests_e2e.py -m e2e
+python -m pytest -m e2e
 ```
 
 ### Node

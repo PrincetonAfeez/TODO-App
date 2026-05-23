@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\utils\choices.py
+# hypothesis_version: 6.151.12
+
+['BaseChoiceIterator', 'BlankChoiceIterator', 'flatten_choices', 'index out of range', 'normalize_choices']

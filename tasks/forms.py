@@ -50,7 +50,7 @@ class TaskForm(forms.ModelForm):
 
 class RecurrenceForm(forms.Form):
     frequency = forms.ChoiceField(choices=RecurrenceFrequency.choices)
-    interval = forms.IntegerField(min_value=1, initial=1)
+    interval = forms.IntegerField(min_value=1, max_value=52, initial=1)
     weekdays = forms.MultipleChoiceField(
         choices=[(str(value), label) for value, label in WEEKDAY_CHOICES],
         required=False,

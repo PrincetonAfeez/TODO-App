@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\creation.py
+# hypothesis_version: 6.151.12
+
+[':memory:', 'NAME', 'TEST', 'Tests cancelled.', 'fork', 'mode=memory', 'spawn', 'true', 'yes']

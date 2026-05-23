@@ -57,7 +57,7 @@ class TaskListQuerySet(models.QuerySet):
         )
 
 
-class TaskListManager(models.Manager.from_queryset(TaskListQuerySet)):
+class TaskListManager(models.Manager.from_queryset(TaskListQuerySet)):  # type: ignore[misc]
     pass
 
 
@@ -97,12 +97,13 @@ class Recurrence(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        units = {
+        units: dict[RecurrenceFrequency, tuple[str, str]] = {
             RecurrenceFrequency.DAILY: ("day", "days"),
             RecurrenceFrequency.WEEKLY: ("week", "weeks"),
             RecurrenceFrequency.MONTHLY: ("month", "months"),
         }
-        singular, plural = units[self.frequency]
+        frequency = RecurrenceFrequency(self.frequency)
+        singular, plural = units[frequency]
         label = singular if self.interval == 1 else plural
         if self.interval == 1:
             return f"Every {label}"
@@ -137,7 +138,10 @@ class TaskQuerySet(models.QuerySet):
         today = timezone.localdate()
         start = timezone.make_aware(datetime.combine(today, time.min))
         end = timezone.make_aware(datetime.combine(today, time.max))
-        return self.filter(due_date__range=(start, end))
+        return self.filter(
+            due_date__range=(start, end),
+            status=TaskStatus.OPEN,
+        )
 
     def overdue(self):
         return self.filter(
@@ -148,7 +152,7 @@ class TaskQuerySet(models.QuerySet):
     def upcoming(self):
         today = timezone.localdate()
         end = timezone.make_aware(datetime.combine(today, time.max))
-        return self.filter(due_date__gt=end)
+        return self.filter(due_date__gt=end, status=TaskStatus.OPEN)
 
     def templates(self):
         return self.filter(recurrence__isnull=False)
@@ -176,7 +180,7 @@ class TaskQuerySet(models.QuerySet):
         elif view == "overdue":
             tasks = tasks.overdue()
 
-        if status in TaskStatus.values:
+        if status in TaskStatus.values and view == "all":
             tasks = tasks.filter(status=status)
 
         if priority in TaskPriority.values:
@@ -206,7 +210,7 @@ class TaskQuerySet(models.QuerySet):
         return tasks.ordered()
 
 
-class TaskManager(models.Manager.from_queryset(TaskQuerySet)):
+class TaskManager(models.Manager.from_queryset(TaskQuerySet)):  # type: ignore[misc]
     def get_queryset(self):
         return super().get_queryset().filter(deleted_at__isnull=True)
 
@@ -295,14 +299,16 @@ class Task(models.Model):
 
     def clean(self) -> None:
         errors = {}
-        if self.parent_id:
-            parent = self.parent
+        parent = self.parent
+        if self.parent_id and parent is not None:
             if parent.parent_id:
                 errors["parent"] = "Subtasks cannot have their own subtasks."
             if parent.task_list_id != self.task_list_id:
                 errors["parent"] = "Subtasks must belong to the same task list."
             if self.recurrence_id:
                 errors["recurrence"] = "Subtasks cannot be recurrence templates."
+        if self.spawned_from_id and self.recurrence_id:
+            errors["recurrence"] = "Spawned occurrences cannot be recurrence templates."
         if self.pk and self.parent_id:
             has_children = Task.objects.all_with_deleted().filter(parent=self).exists()
             if has_children:
@@ -324,9 +330,7 @@ class Task(models.Model):
     @property
     def subtask_done_count(self) -> int:
         return sum(
-            1
-            for child in self._subtask_children()
-            if child.status == TaskStatus.DONE
+            1 for child in self._subtask_children() if child.status == TaskStatus.DONE
         )
 
     @property

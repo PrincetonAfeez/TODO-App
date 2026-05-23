@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\cache\backends\db.py
+# hypothesis_version: 6.151.12
+
+['%s', ', ', 'CacheEntry', 'DELETE FROM %s', 'add', 'cache entries', 'cache entry', 'cache_key', 'cacheentry', 'django_cache', 'expires', 'latin1', 'set', 'touch', 'value']

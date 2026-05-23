@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\admin.py
+# hypothesis_version: 6.151.12
+
+['%s:%s_%s_change', '<id>/password/', 'Change password: %s', 'GET', 'HEAD', 'Important dates', 'OPTIONS', 'POST', 'Permissions', 'Personal info', 'Set password: %s', 'TRACE', '_addanother', '_continue', 'add', 'adminForm', 'change', 'classes', 'content_type', 'date_joined', 'email', 'fields', 'first_name', 'form', 'form_url', 'groups', 'has_absolute_url', 'is_active', 'is_popup', 'is_popup_var', 'is_staff', 'is_superuser', 'key', 'last_login', 'last_name', 'name', 'opts', 'original', 'password', 'password1', 'password2', 'permissions', 'queryset', 'save_as', 'set_usable_password', 'show_save', 'title', 'unset-password', 'usable_password', 'user_permissions', 'username', 'username_help_text', 'wide']

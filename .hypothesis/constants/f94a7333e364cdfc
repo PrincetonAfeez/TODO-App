@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\utils\dateformat.py
+# hypothesis_version: 6.151.12
+
+[100, 3600, 86400, '%02d', '%04d', '%06d', '%d:%02d', '%s %s', '%s%02d%02d', '+', '-', '0', '1', 'AM', 'PM', '\\1', '\\\\(.)', 'a.m.', 'midnight', 'nd', 'noon', 'p.m.', 'rd', 'st', 'th', 'tzinfo']

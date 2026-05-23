@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\query_utils.py
+# hypothesis_version: 6.151.12
+
+['%s.%s', ', ', 'AND', 'OR', 'PathInfo', 'XOR', '_check', '_connector', '_negated', 'class_lookups', 'conditional', 'django.db.models', 'exact', 'flatten', 'instance_lookups', 'isnull', 'output_field', 'parent_link', 'primary_key', 'resolve_expression']

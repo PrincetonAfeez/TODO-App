@@ -9,9 +9,10 @@ erDiagram
     TASK_LIST {
       bigint id PK
       string name
-      string session_key UK
+      string session_key
       datetime created_at
       datetime updated_at
+      note "unique (session_key, name)"
     }
 
     RECURRENCE {

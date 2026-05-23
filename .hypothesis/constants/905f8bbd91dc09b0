@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\utils\cache.py
+# hypothesis_version: 6.151.12
+
+[200, 300, 412, '%s=%s', '*', ', ', '-', '.%s', '=', 'ACCEPT_LANGUAGE', 'Cache-Control', 'Content-Location', 'Date', 'ETag', 'Expires', 'GET', 'HEAD', 'HTTP_', 'HTTP_IF_MATCH', 'HTTP_IF_NONE_MATCH', 'LANGUAGE_CODE', 'Last-Modified', 'Vary', 'W/', '\\s*,\\s*', '_', 'ascii', 'max-age', 'max_age', 'no-cache', 'private', 'public']

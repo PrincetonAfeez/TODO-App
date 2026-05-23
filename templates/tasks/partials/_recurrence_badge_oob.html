@@ -1,0 +1,5 @@
+<span
+  id="recurrence-badge-{{ task.id }}"
+  hx-swap-oob="true"
+  class="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% if not task.recurrence %} hidden{% endif %}"
+>{% if task.recurrence %}<i data-lucide="repeat-2" class="h-3 w-3"></i> {{ task.recurrence.get_frequency_display }}{% endif %}</span>

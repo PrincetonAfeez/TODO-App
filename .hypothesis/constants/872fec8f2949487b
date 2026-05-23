@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\contenttypes\models.py
+# hypothesis_version: 6.151.12
+
+[100, '%s | %s', 'app_label', 'content type', 'content types', 'django_content_type', 'model', 'model__in']

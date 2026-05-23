@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\db\models\sql\constants.py
+# hypothesis_version: 6.151.12
+
+[100, 'ASC', 'DESC', 'INNER JOIN', 'LEFT OUTER JOIN', 'cursor', 'multi', 'no results', 'row count', 'single']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\migrations\0012_alter_user_first_name_max_length.py
+# hypothesis_version: 6.151.12
+
+[150, 'auth', 'first name', 'first_name', 'user']

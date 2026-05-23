@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\auth\hashers.py
+# hypothesis_version: 6.151.12
+
+[128, 102400, 1000000, '!', '$', '%s$%d$%s$%d$%d$%s', '%s$%d$%s$%s', '%s$%s', '%s$%s$%s', '*', '=', 'PASSWORD_HASHERS', 'algorithm', 'algostr', 'argon2', 'ascii', 'bcrypt', 'bcrypt_sha256', 'block size', 'block_size', 'checksum', 'default', 'hash', 'iterations', 'latin1', 'md5', 'md5$$', 'memory cost', 'memory_cost', 'parallelism', 'params', 'pbkdf2_sha1', 'pbkdf2_sha256', 'salt', 'scrypt', 'sha1$$', 'time cost', 'time_cost', 'unsalted_md5', 'unsalted_sha1', 'variety', 'version', 'work factor', 'work_factor']

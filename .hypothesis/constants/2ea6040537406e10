@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\contenttypes\migrations\0001_initial.py
+# hypothesis_version: 6.151.12
+
+[100, 'ContentType', 'ID', 'app_label', 'content type', 'content types', 'contenttype', 'db_table', 'django_content_type', 'id', 'model', 'name', 'objects', 'ordering', 'verbose_name', 'verbose_name_plural']

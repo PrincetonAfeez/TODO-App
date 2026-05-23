@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\tasks\forms.py
+# hypothesis_version: 6.151.12
+
+['%Y-%m-%d %H:%M', '%Y-%m-%dT%H:%M', 'Fri', 'Mon', 'Sat', 'Sun', 'Thu', 'Tue', 'Wed', 'autocomplete', 'date', 'datetime-local', 'day_of_month', 'due_date', 'frequency', 'name', 'notes', 'off', 'priority', 'rows', 'title', 'type', 'weekdays']

@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\checks\security\sessions.py
+# hypothesis_version: 6.151.12
+
+['security.W010', 'security.W011', 'security.W012', 'security.W013', 'security.W014', 'security.W015']

@@ -113,6 +113,27 @@ def test_reorder_tasks_is_scoped_and_audited(task_list):
 
 
 @pytest.mark.django_db
+def test_reorder_tasks_includes_soft_deleted_in_scope(task_list):
+    active = services.create_task(task_list=task_list, title="Active")
+    deleted = services.create_task(task_list=task_list, title="Deleted")
+    services.soft_delete_task(deleted)
+
+    services.reorder_tasks(
+        task_list=task_list,
+        ordered_ids=[deleted.id, active.id],
+        include_deleted=True,
+    )
+
+    ordered = list(
+        Task.objects.all_with_deleted()
+        .filter(task_list=task_list, parent__isnull=True)
+        .order_by("order")
+        .values_list("id", flat=True)
+    )
+    assert ordered == [deleted.id, active.id]
+
+
+@pytest.mark.django_db
 def test_task_signals_create_audit_events(task_list):
     task = services.create_task(task_list=task_list, title="Audit me")
     services.toggle_task(task)
@@ -194,6 +215,7 @@ def test_htmx_create_task_returns_partial(client):
     )
 
     assert response.status_code == 200
+    assert b'id="task-list-frame"' in response.content
     assert b"task-group" in response.content
     assert b"From HTMX" in response.content
 
@@ -222,24 +244,10 @@ def test_export_csv_flattens_parent_and_child_rows(task_list):
     result = services.export_tasks(task_list, fmt="csv")
     rows = list(csv.reader(io.StringIO(result.body)))
 
-    assert rows[0] == [
-        "id",
-        "parent_id",
-        "title",
-        "notes",
-        "status",
-        "priority",
-        "order",
-        "due_date",
-        "completed_at",
-        "recurrence_frequency",
-        "deleted_at",
-        "created_at",
-        "updated_at",
-    ]
-    titles = {row[2] for row in rows[1:]}
+    assert rows[0] == services.CSV_COLUMNS
+    titles = {row[3] for row in rows[1:]}
     assert titles == {"Parent", "Child"}
-    child_row = next(row for row in rows[1:] if row[2] == "Child")
+    child_row = next(row for row in rows[1:] if row[3] == "Child")
     assert child_row[1] == str(parent.id)
 
 
@@ -268,7 +276,7 @@ def test_recurrence_str_uses_plural_units():
 
 
 @pytest.mark.django_db
-def test_htmx_create_first_task_removes_empty_state_oob(client):
+def test_htmx_create_first_task_returns_list_frame_without_empty_state(client):
     client.get(reverse("tasks:home"))
     task_list = TaskList.objects.filter(name="Inbox").order_by("-id").first()
     Task.objects.filter(task_list=task_list).delete()
@@ -280,9 +288,10 @@ def test_htmx_create_first_task_removes_empty_state_oob(client):
     )
 
     assert response.status_code == 200
-    assert b"hx-swap-oob" in response.content
-    assert b"task-list-empty-state" in response.content
-    assert b"delete" in response.content
+    assert b'id="task-list-frame"' in response.content
+    assert b"First task" in response.content
+    assert response.content.count(b'id="task-list-frame"') == 1
+    assert b"Nothing here yet." not in response.content
 
 
 @pytest.mark.django_db
@@ -537,6 +546,45 @@ def test_recurrence_form_prefills_weekday_checkboxes(client):
     assert b'name="weekdays" value="2" checked' in response.content
     assert b'name="weekdays" value="16" checked' in response.content
     assert b'name="weekdays" value="1" checked' not in response.content
+    assert b'name="interval"' in response.content
+    assert b'max="52"' in response.content
+
+
+@pytest.mark.django_db
+def test_list_detail_export_links_carry_show_deleted(session_client, inbox):
+    services.create_task(task_list=inbox, title="Active")
+    csv_url = reverse("tasks:export_csv", args=[inbox.id])
+    json_url = reverse("tasks:export_json", args=[inbox.id])
+
+    default_response = session_client.get(reverse("tasks:list_detail", args=[inbox.id]))
+    assert csv_url.encode() in default_response.content
+    assert json_url.encode() in default_response.content
+    assert b"?show_deleted=1" not in default_response.content
+
+    show_deleted_response = session_client.get(
+        reverse("tasks:list_detail", args=[inbox.id]),
+        {"show_deleted": "1"},
+    )
+    assert f"{csv_url}?show_deleted=1".encode() in show_deleted_response.content
+    assert f"{json_url}?show_deleted=1".encode() in show_deleted_response.content
+
+
+@pytest.mark.django_db
+def test_export_view_includes_soft_deleted_with_show_deleted(session_client, inbox):
+    services.create_task(task_list=inbox, title="Visible")
+    hidden = services.create_task(task_list=inbox, title="Hidden")
+    services.soft_delete_task(hidden)
+
+    default_response = session_client.get(reverse("tasks:export_csv", args=[inbox.id]))
+    assert b"Visible" in default_response.content
+    assert b"Hidden" not in default_response.content
+
+    with_deleted_response = session_client.get(
+        reverse("tasks:export_csv", args=[inbox.id]),
+        {"show_deleted": "1"},
+    )
+    assert b"Visible" in with_deleted_response.content
+    assert b"Hidden" in with_deleted_response.content
 
 
 @pytest.mark.django_db
@@ -630,7 +678,10 @@ def test_edit_task_returns_edit_form(client):
     task_list = TaskList.objects.filter(name="Inbox").order_by("-id").first()
     task = services.create_task(task_list=task_list, title="Edit me")
 
-    response = client.get(reverse("tasks:edit_task", args=[task.id]))
+    response = client.get(
+        reverse("tasks:edit_task", args=[task.id]),
+        HTTP_HX_REQUEST="true",
+    )
 
     assert response.status_code == 200
     assert b"data-edit-form" in response.content
@@ -733,6 +784,24 @@ def test_set_recurrence_view_saves_daily_rule(client):
     assert task.recurrence.frequency == RecurrenceFrequency.DAILY
     assert task.recurrence.interval == 2
     assert "HX-Trigger" in response
+    assert f"recurrence-badge-{task.id}".encode() in response.content
+    assert b"hx-swap-oob" in response.content
+    assert b"Daily" in response.content
+
+
+@pytest.mark.django_db
+def test_clear_recurrence_oob_hides_badge(session_client, inbox):
+    task = services.create_task(task_list=inbox, title="Recurring")
+    services.set_recurrence(task, frequency=RecurrenceFrequency.DAILY, interval=1)
+
+    response = session_client.post(
+        reverse("tasks:clear_recurrence", args=[task.id]),
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+    assert f"recurrence-badge-{task.id}".encode() in response.content
+    assert b"hidden" in response.content
 
 
 @pytest.mark.django_db
@@ -1165,6 +1234,310 @@ def test_reorder_view_accepts_space_separated_order(session_client, inbox):
 
 
 @pytest.mark.django_db
+def test_reorder_in_show_deleted_view_enables_sortable_and_persists(
+    session_client, inbox
+):
+    active = services.create_task(task_list=inbox, title="Active")
+    deleted = services.create_task(task_list=inbox, title="Deleted")
+    services.soft_delete_task(deleted)
+
+    response = session_client.get(
+        reverse("tasks:list_detail", args=[inbox.id]),
+        {"show_deleted": "1"},
+    )
+
+    assert response.status_code == 200
+    assert (
+        b'id="task-list"\n    class="space-y-2"\n    data-sortable-list'
+        in response.content
+    )
+
+    reorder_response = session_client.post(
+        reverse("tasks:reorder_tasks", args=[inbox.id]),
+        {"order": f"{deleted.id},{active.id}"},
+        HTTP_HX_CURRENT_URL=(
+            f"http://testserver{reverse('tasks:list_detail', args=[inbox.id])}"
+            "?show_deleted=1"
+        ),
+    )
+    assert reorder_response.status_code == 204
+    ordered = list(
+        Task.objects.all_with_deleted()
+        .filter(task_list=inbox, parent__isnull=True)
+        .order_by("order")
+        .values_list("id", flat=True)
+    )
+    assert ordered == [deleted.id, active.id]
+
+
+@pytest.mark.django_db
+def test_reorder_active_only_payload_with_deleted_task_in_list(task_list):
+    first = services.create_task(task_list=task_list, title="First")
+    second = services.create_task(task_list=task_list, title="Second")
+    deleted = services.create_task(task_list=task_list, title="Deleted")
+    services.soft_delete_task(deleted)
+
+    services.reorder_tasks(task_list=task_list, ordered_ids=[second.id, first.id])
+
+    first.refresh_from_db()
+    second.refresh_from_db()
+    deleted.refresh_from_db()
+    assert first.order == 1
+    assert second.order == 0
+    assert deleted.order == 2
+
+
+@pytest.mark.django_db
+def test_reorder_view_succeeds_when_deleted_task_hidden(session_client, inbox):
+    active = services.create_task(task_list=inbox, title="Active")
+    hidden = services.create_task(task_list=inbox, title="Hidden")
+    services.soft_delete_task(hidden)
+
+    response = session_client.post(
+        reverse("tasks:reorder_tasks", args=[inbox.id]),
+        {"order": str(active.id)},
+    )
+
+    assert response.status_code == 204
+
+
+@pytest.mark.django_db
+def test_create_task_with_active_filter_refreshes_task_list(session_client, inbox):
+    services.create_task(task_list=inbox, title="Existing", priority=TaskPriority.HIGH)
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+    filtered_url = f"{list_url}?priority=high"
+
+    response = session_client.post(
+        reverse("tasks:create_task", args=[inbox.id]),
+        {"title": "Low priority", "priority": "low", "notes": ""},
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_CURRENT_URL=f"http://testserver{filtered_url}",
+    )
+
+    assert response.status_code == 200
+    assert b"task-list-frame" in response.content
+    assert b"Existing" in response.content
+    assert b"Low priority" not in response.content
+
+
+@pytest.mark.django_db
+def test_create_task_htmx_always_returns_task_list_frame(session_client, inbox):
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+    response = session_client.post(
+        reverse("tasks:create_task", args=[inbox.id]),
+        {"title": "Plain add", "priority": "medium", "notes": ""},
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_CURRENT_URL=f"http://testserver{list_url}",
+    )
+
+    assert response.status_code == 200
+    assert b'id="task-list-frame"' in response.content
+    assert b"Plain add" in response.content
+    assert response.content.count(b'id="task-list-frame"') == 1
+    assert response.content.count(b'id="task-list"') == 1
+
+
+@pytest.mark.django_db
+def test_create_task_after_view_filter_returns_single_list_frame(session_client, inbox):
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+    filtered_url = f"{list_url}?sort=due_date"
+    due = timezone.localtime().strftime("%Y-%m-%dT%H:%M")
+
+    response = session_client.post(
+        reverse("tasks:create_task", args=[inbox.id]),
+        {
+            "title": "Sorted task",
+            "priority": "medium",
+            "notes": "",
+            "due_date": due,
+        },
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_CURRENT_URL=f"http://testserver{filtered_url}",
+    )
+
+    assert response.status_code == 200
+    assert response.content.count(b'id="task-list-frame"') == 1
+    assert response.content.count(b'id="task-list"') == 1
+    assert b"Sorted task" in response.content
+
+
+@pytest.mark.django_db
+def test_list_detail_keeps_subtasks_under_filtered_parent(session_client, inbox):
+    parent = services.create_task(
+        task_list=inbox,
+        title="Due today",
+        due_date=timezone.now(),
+        priority=TaskPriority.HIGH,
+    )
+    services.create_task(task_list=inbox, parent=parent, title="Sub one")
+    services.create_task(
+        task_list=inbox,
+        parent=parent,
+        title="Sub two",
+        priority=TaskPriority.LOW,
+    )
+
+    response = session_client.get(
+        reverse("tasks:list_detail", args=[inbox.id]),
+        {"view": "today", "priority": "high"},
+    )
+
+    assert response.status_code == 200
+    assert b"Due today" in response.content
+    assert b"Sub one" in response.content
+    assert b"Sub two" in response.content
+    assert b"0/2" in response.content
+
+
+@pytest.mark.django_db
+def test_apply_list_filters_ignores_status_on_date_views(task_list):
+    open_today = services.create_task(
+        task_list=task_list,
+        title="Open today",
+        due_date=timezone.now(),
+    )
+    done_today = services.create_task(
+        task_list=task_list,
+        title="Done today",
+        due_date=timezone.now(),
+    )
+    services.toggle_task(done_today)
+
+    titles = list(
+        Task.objects.filter(task_list=task_list, parent__isnull=True)
+        .apply_list_filters(view="today", status=TaskStatus.DONE)
+        .values_list("title", flat=True)
+    )
+
+    assert titles == [open_today.title]
+
+
+@pytest.mark.django_db
+def test_list_detail_disables_status_on_date_views(session_client, inbox):
+    services.create_task(
+        task_list=inbox,
+        title="Due today",
+        due_date=timezone.now(),
+    )
+
+    response = session_client.get(
+        reverse("tasks:list_detail", args=[inbox.id]),
+        {"view": "today"},
+    )
+
+    assert response.status_code == 200
+    assert b'id="filter-status-field"' in response.content
+    assert b"disabled" in response.content
+    assert b"Today, Upcoming, and Overdue show open tasks only." in response.content
+
+
+@pytest.mark.django_db
+def test_list_filter_htmx_oob_refreshes_status_control(session_client, inbox):
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+
+    response = session_client.get(
+        f"{list_url}?view=today",
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+    assert b'id="filter-status-field"' in response.content
+    assert b"hx-swap-oob" in response.content
+    assert b"disabled" in response.content
+
+
+@pytest.mark.django_db
+def test_deleted_task_post_mutations_rejected(session_client, inbox):
+    task = services.create_task(task_list=inbox, title="Original")
+    services.soft_delete_task(task)
+    denied = b"Deleted tasks are read-only; restore first."
+
+    assert (
+        session_client.get(
+            reverse("tasks:edit_task", args=[task.id]),
+            HTTP_HX_REQUEST="true",
+        ).status_code
+        == 400
+    )
+
+    response = session_client.post(
+        reverse("tasks:update_task", args=[task.id]),
+        {"title": "Hacked", "notes": "", "priority": "medium"},
+    )
+    assert response.status_code == 400
+    assert denied in response.content
+    assert Task.objects.all_with_deleted().get(id=task.id).title == "Original"
+
+    events_before = TaskEvent.objects.filter(task_id=task.id).count()
+    assert (
+        session_client.post(reverse("tasks:toggle_task", args=[task.id])).status_code
+        == 400
+    )
+    assert TaskEvent.objects.filter(task_id=task.id).count() == events_before
+
+    assert (
+        session_client.post(
+            reverse("tasks:set_recurrence", args=[task.id]),
+            {"frequency": "daily", "interval": "1"},
+        ).status_code
+        == 400
+    )
+    assert (
+        session_client.post(
+            reverse("tasks:clear_recurrence", args=[task.id])
+        ).status_code
+        == 400
+    )
+    assert (
+        session_client.post(reverse("tasks:delete_task", args=[task.id])).status_code
+        == 400
+    )
+
+    parent = services.create_task(task_list=inbox, title="Deleted parent")
+    services.soft_delete_task(parent)
+    subtask_response = session_client.post(
+        reverse("tasks:create_subtask", args=[parent.id]),
+        {"title": "Orphan", "notes": "", "priority": "medium"},
+        HTTP_HX_REQUEST="true",
+    )
+    assert subtask_response.status_code == 400
+    assert b"Restore the parent" in subtask_response.content
+
+
+@pytest.mark.django_db
+def test_list_filter_htmx_uses_request_get_not_stale_current_url(session_client, inbox):
+    services.create_task(task_list=inbox, title="High", priority=TaskPriority.HIGH)
+    services.create_task(task_list=inbox, title="Low", priority=TaskPriority.LOW)
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+
+    response = session_client.get(
+        f"{list_url}?priority=high",
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_CURRENT_URL=f"http://testserver{list_url}",
+    )
+
+    assert response.status_code == 200
+    assert response.content.count(b"data-task-title") == 1
+    assert b"High" in response.content
+    assert b"Low</h3>" not in response.content
+
+
+@pytest.mark.django_db
+def test_list_filter_htmx_oob_refreshes_new_task_form_target(session_client, inbox):
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+
+    response = session_client.get(
+        f"{list_url}?priority=high",
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+    assert b"hx-swap-oob" in response.content
+    assert b'id="new-task-form"' in response.content
+    assert b'hx-target="#task-list-frame"' in response.content
+
+
+@pytest.mark.django_db
 def test_export_csv_view_downloads_flat_rows(session_client, inbox):
     parent = services.create_task(task_list=inbox, title="Parent")
     services.create_task(task_list=inbox, parent=parent, title="Child")
@@ -1175,7 +1548,7 @@ def test_export_csv_view_downloads_flat_rows(session_client, inbox):
     assert response["Content-Type"].startswith("text/csv")
     assert "attachment" in response["Content-Disposition"]
     rows = list(csv.reader(io.StringIO(response.content.decode())))
-    assert {row[2] for row in rows[1:]} == {"Parent", "Child"}
+    assert {row[3] for row in rows[1:]} == {"Parent", "Child"}
 
 
 @pytest.mark.django_db
@@ -1345,6 +1718,34 @@ def test_recurrence_form_requires_day_of_month():
 
 
 @pytest.mark.django_db
+def test_recurrence_form_rejects_interval_above_weekly_cap():
+    form = RecurrenceForm(
+        {"frequency": "weekly", "interval": "53", "weekdays": ["1"]},
+    )
+    assert form.is_valid() is False
+    assert "interval" in form.errors
+
+
+@pytest.mark.django_db
+def test_export_includes_spawned_from_id(task_list):
+    due_date = timezone.now() + timezone.timedelta(hours=2)
+    task = services.create_task(task_list=task_list, title="Daily", due_date=due_date)
+    services.set_recurrence(task, frequency=RecurrenceFrequency.DAILY, interval=1)
+    services.toggle_task(task)
+    assert Task.objects.filter(spawned_from=task).exists()
+
+    csv_result = services.export_tasks(task_list, fmt="csv")
+    rows = list(csv.reader(io.StringIO(csv_result.body)))
+    occurrence_row = next(row for row in rows[1:] if row[2] == str(task.id))
+    assert occurrence_row[3] == "Daily"
+
+    payload = json.loads(services.export_tasks(task_list, fmt="json").body)
+    spawned = next(item for item in payload if item.get("spawned_from_id") == task.id)
+    assert spawned["title"] == "Daily"
+    assert spawned["spawned_from_id"] == task.id
+
+
+@pytest.mark.django_db
 def test_visitor_timezone_middleware_ignores_invalid_cookie():
     def get_response(request):
         request.active_tz = timezone.get_current_timezone_name()
@@ -1383,6 +1784,44 @@ def test_spawn_skips_duplicate_open_occurrence(task_list):
     services.toggle_task(task)
     services.toggle_task(task)
     assert Task.objects.filter(spawned_from=task, status=TaskStatus.OPEN).count() == 1
+
+
+@pytest.mark.django_db
+def test_spawn_skips_duplicate_after_occurrence_completed(task_list):
+    due_date = timezone.now() + timezone.timedelta(hours=2)
+    task = services.create_task(task_list=task_list, title="Daily", due_date=due_date)
+    services.set_recurrence(task, frequency=RecurrenceFrequency.DAILY, interval=1)
+    services.toggle_task(task)
+    occurrence = Task.objects.get(spawned_from=task, status=TaskStatus.OPEN)
+    first_due = occurrence.due_date
+    services.toggle_task(occurrence)
+    services.toggle_task(task)
+    services.toggle_task(task)
+    assert (
+        Task.objects.all_with_deleted()
+        .filter(spawned_from=task, due_date=first_due)
+        .count()
+        == 1
+    )
+
+
+@pytest.mark.django_db
+def test_spawn_skips_duplicate_after_occurrence_soft_deleted(task_list):
+    due_date = timezone.now() + timezone.timedelta(hours=2)
+    task = services.create_task(task_list=task_list, title="Daily", due_date=due_date)
+    services.set_recurrence(task, frequency=RecurrenceFrequency.DAILY, interval=1)
+    services.toggle_task(task)
+    occurrence = Task.objects.get(spawned_from=task, status=TaskStatus.OPEN)
+    first_due = occurrence.due_date
+    services.soft_delete_task(occurrence)
+    services.toggle_task(task)
+    services.toggle_task(task)
+    assert (
+        Task.objects.all_with_deleted()
+        .filter(spawned_from=task, due_date=first_due)
+        .count()
+        == 1
+    )
 
 
 @pytest.mark.django_db
@@ -1587,3 +2026,146 @@ def test_recurrence_form_weekday_mask_empty_returns_none():
     form = RecurrenceForm({"frequency": "daily", "interval": "1"})
     assert form.is_valid()
     assert form.weekday_mask is None
+
+
+@pytest.mark.django_db
+def test_spawn_template_without_due_date_recomplete_does_not_duplicate(task_list):
+    template = services.create_task(task_list=task_list, title="No due template")
+    services.set_recurrence(
+        template,
+        frequency=RecurrenceFrequency.DAILY,
+        interval=1,
+    )
+    services.toggle_task(template)
+    assert Task.objects.filter(spawned_from=template).count() == 1
+    services.toggle_task(template)
+    services.toggle_task(template)
+    assert Task.objects.filter(spawned_from=template).count() == 1
+
+
+@pytest.mark.django_db
+def test_set_recurrence_weekly_requires_weekday_mask_in_service(task_list):
+    task = services.create_task(task_list=task_list, title="Weekly")
+    with pytest.raises(ValueError, match="weekday"):
+        services.set_recurrence(
+            task,
+            frequency=RecurrenceFrequency.WEEKLY,
+            interval=1,
+            weekday_mask=None,
+        )
+
+
+@pytest.mark.django_db
+def test_soft_delete_already_deleted_is_idempotent(task_list):
+    task = services.create_task(task_list=task_list, title="Once")
+    services.soft_delete_task(task)
+    deleted_at = Task.objects.all_with_deleted().get(id=task.id).deleted_at
+    services.soft_delete_task(task)
+    assert Task.objects.all_with_deleted().get(id=task.id).deleted_at == deleted_at
+
+
+@pytest.mark.django_db
+def test_toggle_under_status_filter_returns_filtered_list(session_client, inbox):
+    task = services.create_task(task_list=inbox, title="Will complete")
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+
+    response = session_client.post(
+        reverse("tasks:toggle_task", args=[task.id]),
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_CURRENT_URL=f"http://testserver{list_url}?status=open",
+    )
+
+    assert response.status_code == 200
+    assert b'id="task-list-frame"' in response.content
+    assert b"Will complete" not in response.content
+
+
+@pytest.mark.django_db
+def test_delete_last_filtered_task_shows_empty_state(session_client, inbox):
+    services.create_task(task_list=inbox, title="Other", priority=TaskPriority.LOW)
+    high = services.create_task(
+        task_list=inbox, title="Only high", priority=TaskPriority.HIGH
+    )
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+
+    response = session_client.post(
+        reverse("tasks:delete_task", args=[high.id]),
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_CURRENT_URL=f"http://testserver{list_url}?priority=high",
+    )
+
+    assert response.status_code == 200
+    assert b"Nothing here yet." in response.content
+
+
+@pytest.mark.django_db
+def test_delete_already_deleted_task_returns_400(session_client, inbox):
+    task = services.create_task(task_list=inbox, title="Deleted")
+    services.soft_delete_task(task)
+
+    response = session_client.post(
+        reverse("tasks:delete_task", args=[task.id]),
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 400
+    assert "HX-Trigger" in response
+
+
+@pytest.mark.django_db
+def test_edit_form_keeps_empty_notes_on_validation_error(session_client, inbox):
+    task = services.create_task(task_list=inbox, title="Has notes", notes="")
+
+    response = session_client.post(
+        reverse("tasks:update_task", args=[task.id]),
+        {"title": "", "notes": "", "priority": "medium"},
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 422
+    assert b'name="notes"' in response.content
+    assert b'name="notes" value=""' not in response.content
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        {"q": "needle"},
+        {"status": TaskStatus.DONE},
+        {"priority": TaskPriority.HIGH},
+        {"view": "today"},
+        {"sort": "due_date"},
+    ],
+)
+@pytest.mark.django_db
+def test_list_detail_disables_reorder_for_active_filters(session_client, inbox, query):
+    services.create_task(task_list=inbox, title="Sample")
+    response = session_client.get(
+        reverse("tasks:list_detail", args=[inbox.id]),
+        query,
+    )
+    assert response.status_code == 200
+    assert b"data-sortable-list" not in response.content
+
+
+@pytest.mark.django_db
+def test_restore_subtask_view_error_toast_is_marked_error(session_client, inbox):
+    parent = services.create_task(task_list=inbox, title="Parent")
+    child = services.create_task(task_list=inbox, parent=parent, title="Child")
+    services.soft_delete_task(parent)
+    services.soft_delete_task(child)
+
+    response = session_client.post(
+        reverse("tasks:restore_task", args=[child.id]),
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 400
+    trigger = json.loads(response["HX-Trigger"])
+    assert trigger["showToast"]["error"] is True
+
+
+@pytest.mark.django_db
+def test_export_unknown_format_raises(task_list):
+    with pytest.raises(ValueError, match="Unsupported export format"):
+        services.export_tasks(task_list, fmt="xml")

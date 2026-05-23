@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\core\checks\messages.py
+# hypothesis_version: 6.151.12
+
+['\n\tHINT: %s', '%s: %s%s%s', '(%s) ', '?', 'hint', 'id', 'level', 'msg', 'obj']

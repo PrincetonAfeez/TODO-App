@@ -1,0 +1,4 @@
+# file: C:\Users\princ\AppData\Roaming\Python\Python314\site-packages\django\contrib\messages\api.py
+# hypothesis_version: 6.151.12
+
+['META', 'MessageFailure', '_messages', 'add_message', 'debug', 'error', 'get_level', 'get_messages', 'info', 'set_level', 'success', 'warning']
