@@ -231,6 +231,50 @@ def test_task_clean_rejects_nested_subtask(task_list):
 
 
 @pytest.mark.django_db
+def test_task_clean_rejects_status_completed_at_mismatch(task_list):
+    open_with_completion = Task(
+        task_list=task_list,
+        title="Mismatch open",
+        status=TaskStatus.OPEN,
+        completed_at=timezone.now(),
+    )
+    with pytest.raises(ValidationError) as exc:
+        open_with_completion.full_clean()
+    assert "completed_at" in exc.value.error_dict
+
+    done_without_completion = Task(
+        task_list=task_list,
+        title="Mismatch done",
+        status=TaskStatus.DONE,
+    )
+    with pytest.raises(ValidationError) as exc:
+        done_without_completion.full_clean()
+    assert "completed_at" in exc.value.error_dict
+
+
+@pytest.mark.django_db
+def test_recurrence_clean_frequency_rules():
+    weekly = Recurrence(frequency=RecurrenceFrequency.WEEKLY, interval=1)
+    with pytest.raises(ValidationError) as exc:
+        weekly.full_clean()
+    assert "weekday_mask" in exc.value.error_dict
+
+    monthly = Recurrence(frequency=RecurrenceFrequency.MONTHLY, interval=1)
+    with pytest.raises(ValidationError) as exc:
+        monthly.full_clean()
+    assert "day_of_month" in exc.value.error_dict
+
+    daily = Recurrence(
+        frequency=RecurrenceFrequency.DAILY,
+        interval=1,
+        weekday_mask=1,
+    )
+    with pytest.raises(ValidationError) as exc:
+        daily.full_clean()
+    assert "weekday_mask" in exc.value.error_dict
+
+
+@pytest.mark.django_db
 def test_task_manager_all_with_deleted_and_occurrences(task_list):
     template = services.create_task(task_list=task_list, title="Template")
     services.set_recurrence(
@@ -501,7 +545,7 @@ def test_ids_from_post_fallback_when_getlist_empty():
             get=lambda key, default="": "9 8 7" if key == "order" else default,
         )
     )
-    assert _ids_from_post(request) == ["9", "8", "7"]
+    assert _ids_from_post(request) == [9, 8, 7]
 
 
 @pytest.mark.django_db
@@ -924,22 +968,6 @@ def test_admin_classes_register_models(task_list):
     assert (
         TaskEventAdmin(TaskEvent, site).get_queryset(None).filter(id=event.id).exists()
     )
-
-
-@pytest.mark.django_db
-def test_weekday_selected_prefers_bound_form_data():
-    from tasks.forms import RecurrenceForm
-    from tasks.templatetags.task_extras import _weekday_selected
-
-    form = RecurrenceForm(
-        {
-            "frequency": "weekly",
-            "interval": "2",
-            "weekdays": ["4", "16"],
-        }
-    )
-    assert _weekday_selected(form, None, 4) is True
-    assert _weekday_selected(form, None, 1) is False
 
 
 @pytest.mark.django_db

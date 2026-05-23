@@ -124,6 +124,8 @@ List views filter through `TaskQuerySet.apply_list_filters()`:
 
 CSV export (`services.CSV_COLUMNS`) includes full recurrence fields
 (`recurrence_interval`, `recurrence_weekday_mask`, `recurrence_day_of_month`,
-`recurrence_end_date`) alongside `recurrence_frequency`.
+`recurrence_end_date`) alongside `recurrence_frequency`. Export views apply the
+same list filters as the detail page. JSON nodes include `parent_id` and
+`task_list_id` on every task (top-level and nested subtasks).
 
 See [`docs/edge-cases.md`](../docs/edge-cases.md) for the full invariant catalog.

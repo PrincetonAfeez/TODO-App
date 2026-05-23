@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\tasks\tests_e2e.py
+# hypothesis_version: 6.151.12
+
+[400, '#new-task-form', '#task-list', '.subtask-row', '.task-group', '/lists/', '/reorder/', '/toggle/', '0/1', '1/1', '2030-06-01T09:00', 'Active task', 'Add', 'Another low', 'Child task', 'Clear', 'Daily template', 'Delete task', 'Deleted', 'Deleted task', 'E2E smoke task', 'Edit task', 'Editable', 'Edited title', 'Escape', 'Events', 'Every day', 'GET', 'High task', 'Keyboard shortcuts', 'Low task', 'Nested item', 'New task', 'Nothing here yet.', 'One off', 'Only task', 'POST', 'Parent for subtasks', 'Parent task', 'Recurring task', 'Restore', 'Restore me', 'Save', 'Show deleted', 'Soft delete me', 'Some notes', 'Sort filter task', 'Spawned', 'Task Alpha', 'Task Beta', '[data-task-title]', 'button', 'daily', 'data-sortable-list', 'dialog', 'due_date', 'heading', 'high', 'id', 'line-through', 'low', 'open', 'priority=high', 'summary']

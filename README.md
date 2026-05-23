@@ -2,10 +2,9 @@
 
 **Evaluators:** start with [`docs/START_HERE.md`](docs/START_HERE.md).
 
-A session-scoped Django 5 + HTMX task manager built from `To-Do App.txt`.
-It uses SQLite for development, keeps views thin, puts orchestration in
-`tasks/services.py`, and records task history through model signals plus
-intent-bearing service events.
+A session-scoped Django 5 + HTMX task manager. Domain logic lives in
+`tasks/services.py`; HTMX, filters, and OOB orchestration live in `tasks/views.py`.
+Soft delete, recurrence, audit events, and partial-page updates are first-class.
 
 ## Setup
 
@@ -52,7 +51,7 @@ Useful commands (PowerShell paths shown; on Bash replace with `.venv/bin/python`
 ```powershell
 .\.venv\Scripts\python -m pytest -m "not e2e"
 .\.venv\Scripts\python -m pytest -m "not e2e" --cov=tasks --cov-report=term-missing --cov-fail-under=90
-.\.venv\Scripts\python -m mypy tasks/services.py tasks/models.py
+.\.venv\Scripts\python -m mypy tasks/models.py tasks/services.py tasks/views.py
 .\.venv\Scripts\python -m ruff check .
 .\.venv\Scripts\python -m black --check config tasks
 node --test static/tasks/toggle-helpers.test.js static/tasks/theme-helpers.test.js
@@ -66,8 +65,9 @@ make e2e
 installed (uses `python` from your `PATH`; activate
 the venv first or set `PYTHON=.venv/bin/python` / `PYTHON=.venv/Scripts/python`).
 
-Demo data is seeded under session key `seed-session` (overdue, deleted,
-recurring, and completed tasks with audit events). Use `seed --force` to reset.
+Demo data: `python manage.py seed` (default session `seed-session`) or
+`python manage.py seed --latest-session` after visiting the app once. Use
+`seed --force` to replace existing rows. See `docs/START_HERE.md`.
 
 ## Production
 

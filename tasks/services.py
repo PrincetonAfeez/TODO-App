@@ -94,20 +94,20 @@ def update_task(
 
 
 @transaction.atomic
-def toggle_task(task: Task) -> Task:
+def toggle_task(task: Task) -> tuple[Task, Task | None]:
     if task.deleted_at:
-        return task
+        return task, None
     if task.status == TaskStatus.DONE:
         task.status = TaskStatus.OPEN
         task.completed_at = None
         task.save(update_fields=["status", "completed_at", "updated_at"])
-        return task
+        return task, None
 
     task.status = TaskStatus.DONE
     task.completed_at = timezone.now()
     task.save(update_fields=["status", "completed_at", "updated_at"])
-    spawn_next_occurrence(task)
-    return task
+    spawned = spawn_next_occurrence(task)
+    return task, spawned
 
 
 @transaction.atomic
@@ -208,7 +208,13 @@ def set_recurrence(
     # action codes — see ADR 0003 / 0007 for the signal-vs-service split.
     recurrence = task.recurrence or Recurrence()
     recurrence.frequency = frequency
-    recurrence.interval = max(1, min(RECURRENCE_INTERVAL_MAX, interval))
+    if interval < 1:
+        raise ValueError("Recurrence interval must be at least 1.")
+    if interval > RECURRENCE_INTERVAL_MAX:
+        raise ValueError(
+            f"Recurrence interval cannot exceed {RECURRENCE_INTERVAL_MAX}."
+        )
+    recurrence.interval = interval
     if frequency == RecurrenceFrequency.WEEKLY:
         if not weekday_mask:
             raise ValueError("Weekly recurrence requires at least one weekday.")
@@ -347,7 +353,9 @@ def _add_local_days(local_base: datetime, days: int) -> datetime:
 
 def _next_weekly(local_base: datetime, recurrence: Recurrence) -> datetime:
     if not recurrence.weekday_mask:
-        return _add_local_days(local_base, 7 * recurrence.interval)
+        raise ValueError(
+            "Weekly recurrence requires weekday_mask; invalid or legacy row."
+        )
 
     anchor_week_start = local_base.date() - timedelta(days=local_base.weekday())
     for offset in range(1, 371):
@@ -398,14 +406,28 @@ CSV_COLUMNS = [
 
 
 def export_tasks(
-    task_list: TaskList, *, fmt: str, include_deleted: bool = False
+    task_list: TaskList,
+    *,
+    fmt: str,
+    include_deleted: bool = False,
+    view: str = "all",
+    status: str | None = None,
+    priority: str | None = None,
+    query: str = "",
+    sort: str = "manual",
 ) -> ExportResult:
     task_qs = Task.objects.all_with_deleted() if include_deleted else Task.objects
     child_qs = task_qs.filter(task_list=task_list).ordered()
     tasks = (
         task_qs.filter(task_list=task_list, parent__isnull=True)
         .select_related("recurrence")
-        .ordered()
+        .apply_list_filters(
+            view=view,
+            status=status if status in TaskStatus.values else None,
+            priority=priority if priority in TaskPriority.values else None,
+            query=query,
+            sort=sort,
+        )
         .prefetch_related(Prefetch("children", queryset=child_qs))
     )
     if fmt == "json":
@@ -450,6 +472,8 @@ def _recurrence_to_json(recurrence: Recurrence | None) -> dict | None:
 def _task_to_json(task: Task) -> dict:
     return {
         "id": task.id,
+        "task_list_id": task.task_list_id,
+        "parent_id": task.parent_id,
         "spawned_from_id": task.spawned_from_id,
         "title": task.title,
         "notes": task.notes,

@@ -13,7 +13,7 @@ ignore = ["DJ001"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.dev"
-python_files = ["test_*.py", "*_test.py", "tests.py", "tests_e2e.py"]
+python_files = ["test_*.py", "*_test.py", "tests.py", "tests_e2e.py", "tests_a11y_e2e.py"]
 addopts = "-q"
 markers = [
     "e2e: browser integration tests (Playwright)",
@@ -38,7 +38,7 @@ plugins = ["mypy_django_plugin.main"]
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["tasks.models", "tasks.services"]
+module = ["tasks.models", "tasks.services", "tasks.views"]
 ignore_missing_imports = false
 
 [[tool.mypy.overrides]]

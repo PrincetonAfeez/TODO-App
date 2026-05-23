@@ -91,6 +91,39 @@ def test_reorder_persists_after_reload(page: Page, live_server):
     assert titles == ["Task Beta", "Task Alpha"]
 
 
+def test_reorder_failure_resyncs_list_order(page: Page, live_server):
+    page.goto(f"{live_server.url}/")
+    form = page.locator("#new-task-form")
+    for title in ("Task Alpha", "Task Beta"):
+        form.get_by_placeholder("New task").fill(title)
+        form.get_by_role("button", name="Add").click()
+        expect(page.get_by_text(title)).to_be_visible()
+
+    with page.expect_response(
+        lambda response: response.request.method == "POST"
+        and response.url.endswith("/reorder/")
+    ) as response_info:
+        page.evaluate(
+            """
+            () => {
+                const list = document.getElementById('task-list');
+                const groups = Array.from(list.querySelectorAll('.task-group'));
+                groups.reverse().forEach((group) => list.appendChild(group));
+                const firstId = list.querySelector('.task-group').dataset.taskId;
+                window.htmx.ajax('POST', list.dataset.reorderUrl, {
+                    values: { order: [firstId, firstId] },
+                    swap: 'none',
+                });
+            }
+            """
+        )
+
+    assert response_info.value.status == 400
+    expect(page.locator("#task-list .task-group [data-task-title]")).to_have_text(
+        ["Task Alpha", "Task Beta"]
+    )
+
+
 def test_events_page_loads(page: Page, live_server):
     page.goto(f"{live_server.url}/events/")
     expect(page.get_by_role("heading", name="Events")).to_be_visible()
@@ -295,7 +328,6 @@ def test_recurring_task_spawns_occurrence_on_complete(page: Page, live_server):
         and response.url.endswith("/toggle/")
     ):
         group.locator("[data-optimistic-toggle]").check()
-    page.reload()
     groups = page.locator(".task-group").filter(has_text="Daily template")
     expect(groups).to_have_count(2)
     expect(groups.nth(1).get_by_text("Spawned")).to_be_visible()

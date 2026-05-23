@@ -321,9 +321,6 @@
     if (event.detail.xhr?.status === 422) {
       return;
     }
-    if (event.detail.xhr?.getResponseHeader("HX-Trigger")) {
-      return;
-    }
     var requestPath = event.detail.pathInfo?.requestPath || "";
     if (requestPath.includes("/reorder") && window.htmx) {
       window.htmx.ajax(
@@ -334,6 +331,9 @@
           swap: "outerHTML",
         }
       );
+    }
+    if (event.detail.xhr?.getResponseHeader("HX-Trigger")) {
+      return;
     }
     var checkbox = event.detail.elt;
     if (rollbackOptimisticToggle) {

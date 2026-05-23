@@ -6,18 +6,28 @@ checks cover keyboard and screen-reader behavior described below.
 
 ## Automated scans (CI)
 
-Three pages are scanned on every E2E run (`tasks/tests_a11y_e2e.py`):
+Seven axe runs execute on every E2E job (`tasks/tests_a11y_e2e.py`):
 
-| Page | URL | What it exercises |
+| Scan | URL / state | What it exercises |
 | --- | --- | --- |
-| List detail | `/` | New task form, filters, sidebar, rename |
+| List detail (light) | `/` | New task form, filters, sidebar, rename |
+| List detail (dark) | `/` with `dark` theme | Same page with `html.dark` applied |
 | Lists overview | `/lists/` | Sidebar + list cards |
 | Events | `/events/` | Audit filters + table |
+| Inline edit form | `/` with edit open | Task edit form swapped via HTMX |
+| Create validation error | `/` after invalid submit | Inline errors on `#new-task-form` |
+| Keyboard shortcuts | `/` with dialog open | Modal help dialog |
 
 Run locally:
 
 ```bash
 python -m playwright install chromium
+python -m pytest -m e2e
+```
+
+Or axe only:
+
+```bash
 python -m pytest tasks/tests_a11y_e2e.py -m e2e -v
 ```
 
@@ -35,7 +45,7 @@ Failures print an axe report with rule id, impact, and affected nodes.
 - **Progress** — HTMX indicator is `aria-hidden="true"` (decorative).
 - **Color contrast** — the main **Add task** button uses `bg-emerald-700` on white
   text (≥4.5:1). Other compact emerald actions (sidebar **+**, recurrence save)
-  still use `emerald-600`; axe scans pass on the three CI pages in light mode.
+  still use `emerald-600`; axe scans pass on the CI pages in light and dark mode.
 
 ## Keyboard & focus
 
@@ -52,7 +62,6 @@ Failures print an axe report with rule id, impact, and affected nodes.
 | Drag reorder | No keyboard alternative (SortableJS drag handle only). |
 | Icon-only buttons | Sidebar “All lists” and create-list `+` rely on `title` / context; not ideal for SR-only users. |
 | Tailwind CDN | Runtime CSS; contrast depends on utility classes, not a design-token pipeline. |
-| Dark mode | Tested manually; axe scans run in light mode only. |
 
 ## Manual smoke checklist
 

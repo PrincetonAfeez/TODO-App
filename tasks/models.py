@@ -113,10 +113,28 @@ class Recurrence(models.Model):
         errors = {}
         if self.interval < 1:
             errors["interval"] = "Interval must be at least 1."
+        if self.interval > 52:
+            errors["interval"] = "Interval cannot exceed 52."
         if self.day_of_month is not None and not 1 <= self.day_of_month <= 31:
             errors["day_of_month"] = "Day of month must be between 1 and 31."
         if self.weekday_mask is not None and not 1 <= self.weekday_mask <= 127:
             errors["weekday_mask"] = "Weekday mask must fit Monday through Sunday."
+
+        frequency = self.frequency
+        if frequency == RecurrenceFrequency.WEEKLY:
+            if not self.weekday_mask:
+                errors["weekday_mask"] = (
+                    "Weekly recurrence requires at least one weekday."
+                )
+        elif frequency == RecurrenceFrequency.MONTHLY:
+            if self.day_of_month is None:
+                errors["day_of_month"] = "Monthly recurrence requires a day of month."
+        elif frequency == RecurrenceFrequency.DAILY:
+            if self.weekday_mask is not None:
+                errors["weekday_mask"] = "Daily recurrence cannot set weekday mask."
+            if self.day_of_month is not None:
+                errors["day_of_month"] = "Daily recurrence cannot set day of month."
+
         if errors:
             raise ValidationError(errors)
 
@@ -188,8 +206,7 @@ class TaskQuerySet(models.QuerySet):
 
         stripped = query.strip()
         if stripped:
-            # Search top-level title and notes. Subtask matches do not
-            # surface their parent; this is documented in To-Do App.txt.
+            # Search top-level title and notes; subtask matches do not surface parent.
             tasks = tasks.filter(
                 Q(title__icontains=stripped) | Q(notes__icontains=stripped)
             )
@@ -309,6 +326,10 @@ class Task(models.Model):
                 errors["recurrence"] = "Subtasks cannot be recurrence templates."
         if self.spawned_from_id and self.recurrence_id:
             errors["recurrence"] = "Spawned occurrences cannot be recurrence templates."
+        if self.status == TaskStatus.DONE and self.completed_at is None:
+            errors["completed_at"] = "Completed tasks must have a completion time."
+        if self.status == TaskStatus.OPEN and self.completed_at is not None:
+            errors["completed_at"] = "Open tasks cannot have a completion time."
         if self.pk and self.parent_id:
             has_children = Task.objects.all_with_deleted().filter(parent=self).exists()
             if has_children:

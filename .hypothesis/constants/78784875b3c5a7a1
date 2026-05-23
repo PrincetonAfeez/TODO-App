@@ -1,0 +1,4 @@
+# file: C:\Users\princ\Python\ToDo\tasks\services.py
+# hypothesis_version: 6.151.12
+
+[371, '-due_date', 'Inbox', 'all', 'application/json', 'children', 'completed_at', 'created_at', 'csv', 'day_of_month', 'deleted_at', 'due_date', 'end_date', 'frequency', 'id', 'interval', 'json', 'manual', 'notes', 'occurrence_id', 'order', 'order__max', 'parent_id', 'priority', 'recurrence', 'recurrence_end_date', 'recurrence_frequency', 'recurrence_interval', 'spawned_from_id', 'status', 'subtasks', 'task_list_id', 'tasks', 'template_id', 'text/csv', 'title', 'updated_at', 'weekday_mask']

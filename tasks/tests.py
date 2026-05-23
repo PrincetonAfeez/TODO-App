@@ -262,6 +262,10 @@ def test_export_json_nests_subtasks(task_list):
     assert len(payload) == 1
     assert payload[0]["title"] == "Parent"
     assert payload[0]["subtasks"][0]["title"] == "Child"
+    assert payload[0]["subtasks"][0]["parent_id"] == parent.id
+    assert payload[0]["parent_id"] is None
+    assert payload[0]["task_list_id"] == task_list.id
+    assert payload[0]["subtasks"][0]["task_list_id"] == task_list.id
     assert result.filename == f"{slugify(task_list.name, allow_unicode=True)}.json"
     assert result.content_type == "application/json"
 
@@ -567,6 +571,49 @@ def test_list_detail_export_links_carry_show_deleted(session_client, inbox):
     )
     assert f"{csv_url}?show_deleted=1".encode() in show_deleted_response.content
     assert f"{json_url}?show_deleted=1".encode() in show_deleted_response.content
+
+
+@pytest.mark.django_db
+def test_list_detail_export_links_carry_active_filters(session_client, inbox):
+    services.create_task(task_list=inbox, title="Filtered export")
+    csv_url = reverse("tasks:export_csv", args=[inbox.id])
+
+    response = session_client.get(
+        reverse("tasks:list_detail", args=[inbox.id]),
+        {"priority": TaskPriority.HIGH},
+    )
+
+    assert f"{csv_url}?priority=high".encode() in response.content
+
+
+@pytest.mark.django_db
+def test_export_respects_priority_filter(task_list):
+    services.create_task(
+        task_list=task_list, title="Low task", priority=TaskPriority.LOW
+    )
+    services.create_task(
+        task_list=task_list, title="High task", priority=TaskPriority.HIGH
+    )
+
+    result = services.export_tasks(task_list, fmt="csv", priority=TaskPriority.HIGH)
+
+    assert "High task" in result.body
+    assert "Low task" not in result.body
+
+
+@pytest.mark.django_db
+def test_export_view_respects_query_params(session_client, inbox):
+    services.create_task(task_list=inbox, title="Low task", priority=TaskPriority.LOW)
+    services.create_task(task_list=inbox, title="High task", priority=TaskPriority.HIGH)
+
+    response = session_client.get(
+        reverse("tasks:export_csv", args=[inbox.id]),
+        {"priority": TaskPriority.HIGH},
+    )
+
+    assert response.status_code == 200
+    assert b"High task" in response.content
+    assert b"Low task" not in response.content
 
 
 @pytest.mark.django_db
@@ -1613,13 +1660,15 @@ def test_recurrence_clean_rejects_invalid_weekday_mask():
 
 
 @pytest.mark.django_db
-def test_recurrence_clean_allows_weekly_without_weekday_mask():
+def test_recurrence_clean_rejects_weekly_without_weekday_mask():
     recurrence = Recurrence(
         frequency=RecurrenceFrequency.WEEKLY,
         interval=2,
         weekday_mask=None,
     )
-    recurrence.full_clean()
+    with pytest.raises(ValidationError) as exc:
+        recurrence.full_clean()
+    assert "weekday_mask" in exc.value.error_dict
 
 
 @pytest.mark.django_db
@@ -1984,7 +2033,7 @@ def test_emit_task_events_skips_when_old_values_missing(task_list):
 
 
 @pytest.mark.django_db
-def test_weekly_recurrence_without_mask_uses_interval_weeks():
+def test_next_weekly_requires_weekday_mask():
     recurrence = Recurrence(
         frequency=RecurrenceFrequency.WEEKLY,
         interval=2,
@@ -1992,9 +2041,8 @@ def test_weekly_recurrence_without_mask_uses_interval_weeks():
     )
     local_base = timezone.localtime(timezone.make_aware(datetime(2024, 6, 10, 9, 0)))
 
-    next_local = services._next_weekly(local_base, recurrence)
-
-    assert (next_local.date() - local_base.date()).days == 14
+    with pytest.raises(ValueError, match="weekday_mask"):
+        services._next_weekly(local_base, recurrence)
 
 
 @pytest.mark.django_db
@@ -2169,3 +2217,55 @@ def test_restore_subtask_view_error_toast_is_marked_error(session_client, inbox)
 def test_export_unknown_format_raises(task_list):
     with pytest.raises(ValueError, match="Unsupported export format"):
         services.export_tasks(task_list, fmt="xml")
+
+
+@pytest.mark.django_db
+def test_set_recurrence_rejects_interval_above_max(task_list):
+    task = services.create_task(task_list=task_list, title="Long interval")
+    with pytest.raises(ValueError, match="cannot exceed 52"):
+        services.set_recurrence(
+            task,
+            frequency=RecurrenceFrequency.DAILY,
+            interval=53,
+        )
+
+
+@pytest.mark.django_db
+def test_toggle_recurring_task_htmx_shows_spawned_occurrence(session_client, inbox):
+    due_date = timezone.now() + timezone.timedelta(days=1)
+    task = services.create_task(
+        task_list=inbox,
+        title="Daily template",
+        due_date=due_date,
+    )
+    services.set_recurrence(
+        task,
+        frequency=RecurrenceFrequency.DAILY,
+        interval=1,
+    )
+    list_url = reverse("tasks:list_detail", args=[inbox.id])
+
+    response = session_client.post(
+        reverse("tasks:toggle_task", args=[task.id]),
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_CURRENT_URL=f"http://testserver{list_url}",
+    )
+
+    assert response.status_code == 200
+    assert b'id="task-list-frame"' in response.content
+    assert response.content.count(b"Daily template") == 2
+    assert b"Spawned" in response.content
+
+
+@pytest.mark.django_db
+def test_events_view_omits_invalid_list_from_pagination_query(session_client, inbox):
+    other = TaskList.objects.create(session_key="other-session", name="Other")
+    services.create_task(task_list=inbox, title="Mine")
+
+    response = session_client.get(
+        reverse("tasks:events"),
+        {"list": str(other.id)},
+    )
+
+    assert response.status_code == 200
+    assert f"list={other.id}".encode() not in response.content

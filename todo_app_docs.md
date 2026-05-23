@@ -533,11 +533,13 @@ Computes the next daily, weekly, or monthly occurrence. Monthly recurrence clamp
 
 ---
 
-### `export_tasks(task_list, fmt, include_deleted=False)`
+### `export_tasks(task_list, fmt, include_deleted=False, view="all", ...)`
 
-Exports tasks in the list. By default uses the active manager (no soft-deleted
-rows). Pass `include_deleted=True` or `?show_deleted=1` on export views to
-include deleted rows. CSV is flat; JSON nests subtasks under parents.
+Exports tasks in the list using the same filter parameters as list detail
+(`view`, `status`, `priority`, `q`, `sort`, `show_deleted`). By default uses
+the active manager (no soft-deleted rows). Pass `include_deleted=True` or
+`?show_deleted=1` on export views to include deleted rows. CSV is flat; JSON
+nests subtasks under parents. Subtasks of exported parents are always included.
 
 ---
 
@@ -910,11 +912,13 @@ Content type:
 application/json
 ```
 
-Shape (per top-level task; subtasks nested):
+Shape (per task node; subtasks nested under `subtasks`; each node includes `parent_id`):
 ```json
 [
   {
     "id": 1,
+    "task_list_id": 1,
+    "parent_id": null,
     "spawned_from_id": null,
     "title": "Parent",
     "notes": "",
@@ -927,7 +931,16 @@ Shape (per top-level task; subtasks nested):
     "deleted_at": null,
     "created_at": "2024-06-01T12:00:00+00:00",
     "updated_at": "2024-06-01T12:00:00+00:00",
-    "subtasks": []
+    "subtasks": [
+      {
+        "id": 2,
+        "task_list_id": 1,
+        "parent_id": 1,
+        "spawned_from_id": null,
+        "title": "Child",
+        "subtasks": []
+      }
+    ]
   }
 ]
 ```

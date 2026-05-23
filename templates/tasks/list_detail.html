@@ -20,15 +20,15 @@
         </form>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <a href="{% url 'tasks:export_csv' current_list.id %}{% if show_deleted %}?show_deleted=1{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+        <a href="{% url 'tasks:export_csv' current_list.id %}{% if export_query %}?{{ export_query }}{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
           <i data-lucide="file-down" class="h-4 w-4"></i>
           CSV
         </a>
-        <a href="{% url 'tasks:export_json' current_list.id %}{% if show_deleted %}?show_deleted=1{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+        <a href="{% url 'tasks:export_json' current_list.id %}{% if export_query %}?{{ export_query }}{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
           <i data-lucide="braces" class="h-4 w-4"></i>
           JSON
         </a>
-        <form method="post" action="{% url 'tasks:delete_list' current_list.id %}" onsubmit="return confirm('Delete this list and all of its tasks?')">
+        <form method="post" action="{% url 'tasks:delete_list' current_list.id %}" onsubmit="return confirm('Permanently delete this list and all of its tasks? This cannot be undone.')">
           {% csrf_token %}
           <button class="inline-flex h-9 items-center gap-2 rounded-md border border-red-300 px-3 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40">
             <i data-lucide="trash-2" class="h-4 w-4"></i>

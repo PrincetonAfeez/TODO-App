@@ -7,6 +7,11 @@
   {% if oob %}hx-swap-oob="outerHTML"{% endif %}
 >
   {% csrf_token %}
+  {% if list_filters_active %}
+    <p class="mb-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100" role="note">
+      Filters are active. New tasks are saved to this list but may not appear until you change or clear filters.
+    </p>
+  {% endif %}
   {% include "tasks/partials/_form_errors.html" with form=form error_id="new-task-form-errors" %}
   <div class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
     <input
@@ -14,6 +19,7 @@
       data-new-task-input
       required
       placeholder="New task"
+      aria-label="New task"
       autocomplete="off"
       value="{{ form.title.value|default_if_none:'' }}"
       class="h-10 min-w-0 rounded-md border bg-white px-3 text-sm dark:bg-zinc-950 {% if form.title.errors %}border-red-500 ring-1 ring-red-500 dark:border-red-500{% else %}border-stone-300 dark:border-zinc-700{% endif %}"

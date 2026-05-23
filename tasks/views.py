@@ -169,14 +169,14 @@ def _htmx_response(
     return response
 
 
-def _ids_from_post(request) -> list[str]:
-    ids: list[str] = []
+def _ids_from_post(request) -> list[int]:
+    raw_ids: list[str] = []
     for raw in request.POST.getlist("order"):
-        ids.extend(value for value in raw.replace(",", " ").split() if value.strip())
-    if ids:
-        return ids
-    raw = request.POST.get("order", "")
-    return [value for value in raw.replace(",", " ").split() if value.strip()]
+        raw_ids.extend(value for value in raw.replace(",", " ").split() if value.strip())
+    if not raw_ids:
+        raw = request.POST.get("order", "")
+        raw_ids = [value for value in raw.replace(",", " ").split() if value.strip()]
+    return [int(value) for value in raw_ids]
 
 
 def _task_partial(task: Task, request, *, group: bool = False) -> HttpResponse:
@@ -290,6 +290,24 @@ def _task_for_deleted_partial(request, task_id: int) -> Task:
     )
 
 
+def _export_query_string(filters: dict, *, show_deleted: bool) -> str:
+    params = {}
+    view = filters.get("view", "all")
+    if view and view != "all":
+        params["view"] = view
+    if filters.get("status"):
+        params["status"] = filters["status"]
+    if filters.get("priority"):
+        params["priority"] = filters["priority"]
+    if filters.get("sort") and filters.get("sort") != "manual":
+        params["sort"] = filters["sort"]
+    if filters.get("q"):
+        params["q"] = filters["q"]
+    if show_deleted:
+        params["show_deleted"] = "1"
+    return urlencode(params)
+
+
 def _list_detail_context(request, task_list: TaskList, *, filter_source=None, **extra):
     source = filter_source if filter_source is not None else request.GET
     params = _list_filter_params(
@@ -325,6 +343,13 @@ def _list_detail_context(request, task_list: TaskList, *, filter_source=None, **
         and priority not in TaskPriority.values
     )
     status_filter_enabled = view_filter == "all"
+    filter_values = {
+        "view": view_filter,
+        "status": status or "",
+        "priority": priority or "",
+        "sort": sort,
+        "q": query,
+    }
     return _base_context(
         request,
         current_list=task_list,
@@ -336,13 +361,8 @@ def _list_detail_context(request, task_list: TaskList, *, filter_source=None, **
         reorder_enabled=reorder_enabled,
         list_filters_active=_list_filters_active(**params),
         status_filter_enabled=status_filter_enabled,
-        filters={
-            "view": view_filter,
-            "status": status or "",
-            "priority": priority or "",
-            "sort": sort,
-            "q": query,
-        },
+        filters=filter_values,
+        export_query=_export_query_string(filter_values, show_deleted=show_deleted),
         status_choices=TaskStatus.choices,
         priority_choices=TaskPriority.choices,
         **extra,
@@ -697,7 +717,7 @@ def toggle_task_view(request, task_id: int):
     if denied := _guard_deleted_task_mutation(request, task):
         return denied
     task_list = task.task_list
-    task = services.toggle_task(task)
+    task, spawned = services.toggle_task(task)
     message = "Task reopened" if task.status == TaskStatus.OPEN else "Task completed"
     if task.parent_id:
         response = _htmx_response(
@@ -714,7 +734,13 @@ def toggle_task_view(request, task_id: int):
         if request.htmx:
             return response
         return _mutation_redirect(request, task_list, message)
-    if request.htmx and _uses_filtered_list_response(request):
+    if request.htmx and (
+        _uses_filtered_list_response(request)
+        or (
+            task.status == TaskStatus.DONE
+            and (spawned is not None or task.recurrence_id or task.spawned_from_id)
+        )
+    ):
         return _filtered_list_htmx_response(request, task_list, message=message)
     task = _task_or_404(request, task.id)
     response = _htmx_response(
@@ -933,8 +959,19 @@ def clear_recurrence_view(request, task_id: int):
 
 def _export(request, list_id: int, fmt: str):
     task_list = _list_or_404(request, list_id)
-    include_deleted = request.GET.get("show_deleted") == "1"
-    result = services.export_tasks(task_list, fmt=fmt, include_deleted=include_deleted)
+    params = _list_filter_params(request.GET, request=request, use_current_url=False)
+    result = services.export_tasks(
+        task_list,
+        fmt=fmt,
+        include_deleted=params["show_deleted"],
+        view=params["view_filter"],
+        status=params["status"] if params["status"] in TaskStatus.values else None,
+        priority=(
+            params["priority"] if params["priority"] in TaskPriority.values else None
+        ),
+        query=params["query"],
+        sort=params["sort"],
+    )
     response = HttpResponse(result.body, content_type=result.content_type)
     response["Content-Disposition"] = content_disposition_header(
         as_attachment=True,
@@ -962,16 +999,18 @@ def events_view(request):
     if action in TaskEventAction.values:
         events = events.filter(action=action)
     list_id = request.GET.get("list")
+    valid_list_filter = False
     if list_id and str(list_id).isdigit():
         if _lists_for_request(request).filter(id=list_id).exists():
             events = events.filter(task_list_id=list_id)
+            valid_list_filter = True
 
     paginator = Paginator(events, 25)
     page = paginator.get_page(request.GET.get("page"))
     filter_params = {}
     if action in TaskEventAction.values:
         filter_params["action"] = action
-    if list_id and str(list_id).isdigit():
+    if valid_list_filter:
         filter_params["list"] = list_id
     return render(
         request,

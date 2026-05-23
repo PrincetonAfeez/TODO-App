@@ -13,9 +13,9 @@ Copy `.env.example` to `.env` when you need local overrides.
 ## Checks before opening a PR
 
 ```powershell
-make lint      # ruff + black --check + mypy (models/services)
+make lint      # ruff + black --check + mypy (models/services/views)
 make test      # pytest (unit + integration)
-make typecheck # mypy on tasks/models.py and tasks/services.py
+make typecheck # mypy on tasks/models.py, tasks/services.py, tasks/views.py
 make js-test   # Node tests for static helpers
 make e2e       # Playwright smoke + axe accessibility tests
 make cov       # pytest with --cov-fail-under=90 on tasks/
@@ -27,6 +27,7 @@ make cov       # pytest with --cov-fail-under=90 on tasks/
 - HTMX partials live under `templates/tasks/partials/` with a leading underscore.
 - Architectural decisions get an ADR in `docs/adr/`.
 - Match existing formatting: `black` line length 88, `ruff` with Django rules enabled.
+- **mypy** runs on `tasks/models.py`, `tasks/services.py`, and `tasks/views.py`.
 
 ## Documentation
 
@@ -36,8 +37,6 @@ When changing behavior, update code and docs together:
 2. **`docs/adr/`** — architectural decisions when the *why* changes.
 3. **`README.md`** / **`docs/START_HERE.md`** — setup, CI, and evaluator path.
 4. **`todo_app_docs.md`** — optional long-form reference; banner points to START_HERE.
-
-Spec source remains **`To-Do App.txt`** (may lag; edge-cases tracks implemented behavior).
 
 ## Tests
 
