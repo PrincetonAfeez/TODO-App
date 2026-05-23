@@ -17,10 +17,10 @@
       class="h-9 min-w-0 rounded-md border bg-white px-3 text-sm dark:bg-zinc-950 {% if form.title.errors %}border-red-500 ring-1 ring-red-500 dark:border-red-500{% else %}border-stone-300 dark:border-zinc-700{% endif %}"
       {% if form.title.errors %}aria-invalid="true" aria-describedby="edit-task-form-errors"{% endif %}
     >
-    <textarea name="notes" rows="2" class="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">{{ form.notes.value|default_if_none:task.notes }}</textarea>
+    <textarea name="notes" rows="2" aria-label="Notes" class="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950">{{ form.notes.value|default_if_none:task.notes }}</textarea>
     <div class="grid gap-2 sm:grid-cols-2">
-      <input name="due_date" type="datetime-local" value="{% if form.data.due_date %}{{ form.data.due_date }}{% elif task.due_date %}{{ task.due_date|date:'Y-m-d\TH:i' }}{% endif %}" class="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
-      <select name="priority" class="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <input name="due_date" type="datetime-local" aria-label="Due date" value="{% if form.data.due_date %}{{ form.data.due_date }}{% elif task.due_date %}{{ task.due_date|date:'Y-m-d\TH:i' }}{% endif %}" class="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <select name="priority" aria-label="Priority" class="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
         <option value="low" {% if form.priority.value|default:task.priority == "low" %}selected{% endif %}>Low</option>
         <option value="medium" {% if form.priority.value|default:task.priority == "medium" %}selected{% endif %}>Medium</option>
         <option value="high" {% if form.priority.value|default:task.priority == "high" %}selected{% endif %}>High</option>
@@ -28,7 +28,7 @@
     </div>
   </div>
   <div class="flex gap-1 md:justify-end">
-    <button type="submit" class="inline-flex h-9 items-center gap-2 rounded-md bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700">
+    <button type="submit" class="inline-flex h-9 items-center gap-2 rounded-md bg-emerald-700 px-3 text-sm font-medium text-white hover:bg-emerald-800">
       <i data-lucide="save" class="h-4 w-4" aria-hidden="true"></i>
       Save
     </button>
