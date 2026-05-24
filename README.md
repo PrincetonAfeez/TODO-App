@@ -66,7 +66,8 @@ installed (uses `python` from your `PATH`; activate
 the venv first or set `PYTHON=.venv/bin/python` / `PYTHON=.venv/Scripts/python`).
 
 Demo data: `python manage.py seed` (default session `seed-session`) or
-`python manage.py seed --latest-session` after visiting the app once. Use
+`python manage.py seed --latest-session` after visiting the app once (uses the
+most recent unexpired browser session). Use
 `seed --force` to replace existing rows. See `docs/START_HERE.md`.
 
 ## Production
