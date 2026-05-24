@@ -1,4 +1,4 @@
-"""Additional tests targeting models, services, views, forms, and helpers."""
+""" Tests targeting models, services, views, forms, and helpers """
 
 from __future__ import annotations
 
@@ -1353,6 +1353,76 @@ def test_edit_task_non_htmx_redirects_to_list(session_client, inbox):
 
     assert response.status_code == 302
     assert response.url == reverse("tasks:list_detail", args=[inbox.id])
+
+
+@pytest.mark.django_db
+def test_restore_active_task_view_returns_400(session_client, inbox):
+    task = services.create_task(task_list=inbox, title="Still active")
+
+    response = session_client.post(
+        reverse("tasks:restore_task", args=[task.id]),
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 400
+    assert "already active" in response["HX-Trigger"].lower()
+
+
+@pytest.mark.django_db
+def test_deleted_task_service_mutations_rejected(task_list):
+    task = services.create_task(task_list=task_list, title="Original")
+    services.soft_delete_task(task)
+    task = Task.objects.all_with_deleted().get(id=task.id)
+
+    with pytest.raises(services.TaskDeletedError):
+        services.update_task(
+            task,
+            title="Hacked",
+            notes="",
+            due_date=None,
+            priority=TaskPriority.MEDIUM,
+        )
+
+    with pytest.raises(services.TaskDeletedError):
+        services.set_recurrence(
+            task, frequency=RecurrenceFrequency.DAILY, interval=1
+        )
+
+    with pytest.raises(services.TaskDeletedError):
+        services.clear_recurrence(task)
+
+    parent = services.create_task(task_list=task_list, title="Deleted parent")
+    services.soft_delete_task(parent)
+    parent = Task.objects.all_with_deleted().get(id=parent.id)
+
+    with pytest.raises(services.TaskDeletedError, match="Restore the parent"):
+        services.create_task(task_list=task_list, parent=parent, title="Orphan")
+
+
+@pytest.mark.django_db
+def test_restore_task_on_active_task_raises(task_list):
+    task = services.create_task(task_list=task_list, title="Active")
+
+    with pytest.raises(services.AlreadyActiveError, match="already active"):
+        services.restore_task(task)
+
+
+@pytest.mark.django_db
+def test_apply_list_filters_due_date_sort_nulls_last(task_list):
+    dated = services.create_task(
+        task_list=task_list,
+        title="Dated",
+        due_date=timezone.now() + timezone.timedelta(days=1),
+    )
+    undated = services.create_task(task_list=task_list, title="Undated")
+
+    ids = list(
+        Task.objects.filter(task_list=task_list, parent__isnull=True)
+        .apply_list_filters(sort="due_date")
+        .values_list("id", flat=True)
+    )
+
+    assert ids.index(dated.id) < ids.index(undated.id)
 
 
 @pytest.mark.django_db
