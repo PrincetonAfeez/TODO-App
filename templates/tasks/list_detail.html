@@ -20,20 +20,26 @@
         </form>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <a href="{% url 'tasks:export_csv' current_list.id %}{% if export_query %}?{{ export_query }}{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
-          <i data-lucide="file-down" class="h-4 w-4"></i>
-          CSV
-        </a>
-        <a href="{% url 'tasks:export_json' current_list.id %}{% if export_query %}?{{ export_query }}{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
-          <i data-lucide="braces" class="h-4 w-4"></i>
-          JSON
-        </a>
-        <form method="post" action="{% url 'tasks:delete_list' current_list.id %}" onsubmit="return confirm('Permanently delete this list and all of its tasks? This cannot be undone.')">
+        <div class="flex flex-col gap-0.5">
+          <div class="flex flex-wrap items-center gap-2">
+            <a href="{% url 'tasks:export_csv' current_list.id %}{% if export_query %}?{{ export_query }}{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+              <i data-lucide="file-down" class="h-4 w-4"></i>
+              CSV
+            </a>
+            <a href="{% url 'tasks:export_json' current_list.id %}{% if export_query %}?{{ export_query }}{% endif %}" class="inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 px-3 text-sm font-medium hover:bg-stone-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+              <i data-lucide="braces" class="h-4 w-4"></i>
+              JSON
+            </a>
+          </div>
+          <p class="text-xs text-stone-500 dark:text-stone-400">Exports the same parent task groups visible in the list, including their subtasks.</p>
+        </div>
+        <form method="post" action="{% url 'tasks:delete_list' current_list.id %}" onsubmit="return confirm('Permanently delete this list and all of its tasks? This cannot be undone.')" class="flex flex-col gap-0.5">
           {% csrf_token %}
           <button class="inline-flex h-9 items-center gap-2 rounded-md border border-red-300 px-3 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40">
             <i data-lucide="trash-2" class="h-4 w-4"></i>
             Delete
           </button>
+          <p class="text-xs text-stone-500 dark:text-stone-400">This permanently deletes the list and its tasks.</p>
         </form>
       </div>
     </div>
@@ -68,7 +74,10 @@
         <option value="priority" {% if filters.sort == "priority" %}selected{% endif %}>Priority</option>
         <option value="created_at" {% if filters.sort == "created_at" %}selected{% endif %}>Created</option>
       </select>
-      <input name="q" value="{{ filters.q }}" data-search-input placeholder="Search" class="h-9 min-w-0 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+      <div class="flex min-w-0 flex-col gap-0.5">
+        <input name="q" value="{{ filters.q }}" data-search-input placeholder="Search" class="h-9 min-w-0 rounded-md border border-stone-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+        <p class="text-xs text-stone-500 dark:text-stone-400">Searches top-level task titles and notes.</p>
+      </div>
       <button type="submit" class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-stone-900 px-3 text-sm font-medium text-white hover:bg-stone-700 dark:bg-stone-100 dark:text-zinc-950">
         <i data-lucide="filter" class="h-4 w-4"></i>
         Apply
