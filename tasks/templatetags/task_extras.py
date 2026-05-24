@@ -1,3 +1,5 @@
+""" Template tags for the project """
+
 from django import template
 
 register = template.Library()
