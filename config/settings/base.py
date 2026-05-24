@@ -1,3 +1,5 @@
+""" Base settings for the project """
+
 from pathlib import Path
 
 import environ
