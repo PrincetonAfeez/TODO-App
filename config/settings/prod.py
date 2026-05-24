@@ -1,3 +1,5 @@
+""" Production settings for the project """
+
 from .base import *  # noqa: F403
 
 DEBUG = False
