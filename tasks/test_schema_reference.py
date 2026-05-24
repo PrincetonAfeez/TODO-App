@@ -1,4 +1,4 @@
-"""Guard against drift between Schema/ reference files and Django models."""
+""" Guard against drift between Schema/ reference files and Django models """
 
 from __future__ import annotations
 
