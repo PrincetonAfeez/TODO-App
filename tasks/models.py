@@ -1,10 +1,12 @@
+""" Models for the project """
+
 from __future__ import annotations
 
 from datetime import datetime, time
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Case, IntegerField, Q, Value, When
+from django.db.models import Case, F, IntegerField, Q, Value, When
 from django.utils import timezone
 
 
@@ -212,7 +214,7 @@ class TaskQuerySet(models.QuerySet):
             )
 
         if sort == "due_date":
-            return tasks.order_by("due_date", "order")
+            return tasks.order_by(F("due_date").asc(nulls_last=True), "order")
         if sort == "priority":
             return tasks.annotate(
                 priority_rank=Case(
