@@ -1,4 +1,4 @@
-"""axe-core accessibility scans for key pages."""
+""" axe-core accessibility scans for key pages """
 
 import re
 
