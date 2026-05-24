@@ -1,3 +1,5 @@
+""" Views for the project """
+
 from __future__ import annotations
 
 import json
@@ -52,14 +54,14 @@ def _task_or_404(request, task_id: int) -> Task:
     )
 
 
-def _guard_deleted_task_mutation(request, task: Task) -> HttpResponseBadRequest | None:
+def _guard_deleted_task_mutation(request, task: Task) -> HttpResponse | None:
     if task.is_deleted:
         return _htmx_error(request, "Deleted tasks are read-only; restore first.")
     return None
 
 
-def _htmx_error(request, message: str, *, status: int = 400) -> HttpResponseBadRequest:
-    response = HttpResponseBadRequest(message)
+def _htmx_error(request, message: str, *, status: int = 400) -> HttpResponse:
+    response = HttpResponse(message, status=status)
     if request.htmx:
         response["HX-Trigger"] = json.dumps(
             {"showToast": {"message": message, "error": True}}
@@ -806,6 +808,11 @@ def restore_task_view(request, task_id: int):
     task_list = task.task_list
     try:
         task = services.restore_task(task)
+    except services.AlreadyActiveError as exc:
+        message = str(exc)
+        if request.htmx:
+            return _with_toast(HttpResponse(message, status=400), message, error=True)
+        return HttpResponseBadRequest(message)
     except services.RestoreError as exc:
         message = str(exc)
         if request.htmx:
