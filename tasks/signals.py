@@ -1,3 +1,5 @@
+""" Signals for the project """
+
 from __future__ import annotations
 
 from django.db.models.signals import post_save, pre_save
