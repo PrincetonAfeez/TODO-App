@@ -1,3 +1,5 @@
+""" Tests for the project """
+
 import csv
 import io
 import json
@@ -8,7 +10,9 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.contrib.sessions.models import Session
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.http import HttpResponse, QueryDict
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
@@ -1034,6 +1038,60 @@ def test_seed_force_replaces_data():
     assert Task.objects.filter(task_list__session_key="seed-session").exists()
 
 
+@pytest.mark.django_db
+def test_seed_latest_session_uses_unexpired_session():
+    Session.objects.create(
+        session_key="expired-only",
+        session_data="",
+        expire_date=timezone.now() - timezone.timedelta(days=1),
+    )
+    active = Session.objects.create(
+        session_key="active-browser",
+        session_data="",
+        expire_date=timezone.now() + timezone.timedelta(days=14),
+    )
+
+    out = StringIO()
+    call_command("seed", "--latest-session", "--force", stdout=out)
+
+    assert TaskList.objects.filter(session_key=active.session_key).exists()
+    assert not TaskList.objects.filter(session_key="expired-only").exists()
+    assert "Seeded demo data" in out.getvalue()
+
+
+@pytest.mark.django_db
+def test_seed_latest_session_errors_when_only_expired_sessions():
+    Session.objects.create(
+        session_key="expired-only",
+        session_data="",
+        expire_date=timezone.now() - timezone.timedelta(days=1),
+    )
+
+    with pytest.raises(CommandError, match="No active browser sessions"):
+        call_command("seed", "--latest-session", stdout=StringIO())
+
+
+@pytest.mark.django_db
+def test_export_filtered_parent_includes_all_subtasks(task_list):
+    parent = services.create_task(
+        task_list=task_list,
+        title="High parent",
+        priority=TaskPriority.HIGH,
+    )
+    services.create_task(
+        task_list=task_list,
+        parent=parent,
+        title="Low subtask",
+        priority=TaskPriority.LOW,
+    )
+
+    result = services.export_tasks(task_list, fmt="csv", priority="high")
+    rows = list(csv.reader(io.StringIO(result.body)))
+    titles = {row[3] for row in rows[1:]}
+
+    assert titles == {"High parent", "Low subtask"}
+
+
 @pytest.fixture
 def session_client(client):
     client.get(reverse("tasks:home"))
@@ -1185,6 +1243,7 @@ def test_list_detail_sorts_by_due_date_and_created_at(session_client, inbox):
         title="Earlier due",
         due_date=timezone.now() + timezone.timedelta(days=1),
     )
+    services.create_task(task_list=inbox, title="No due date")
 
     due_response = session_client.get(
         reverse("tasks:list_detail", args=[inbox.id]),
@@ -1193,6 +1252,7 @@ def test_list_detail_sorts_by_due_date_and_created_at(session_client, inbox):
     )
     due_content = due_response.content.decode()
     assert due_content.index("Earlier due") < due_content.index("Later due")
+    assert due_content.index("Later due") < due_content.index("No due date")
 
     newer = services.create_task(task_list=inbox, title="Newest")
     created_response = session_client.get(
