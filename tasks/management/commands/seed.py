@@ -1,3 +1,5 @@
+""" Seed command for the project """
+
 from django.contrib.sessions.models import Session
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
@@ -23,7 +25,10 @@ class Command(BaseCommand):
         parser.add_argument(
             "--latest-session",
             action="store_true",
-            help="Use the most recently touched Django session (visit the app first).",
+            help=(
+                "Use the most recent unexpired browser session "
+                "(visit the app first)."
+            ),
         )
 
     def handle(self, *args, **options):
@@ -32,11 +37,15 @@ class Command(BaseCommand):
                 raise CommandError(
                     "Use either --session-key or --latest-session, not both."
                 )
-            latest = Session.objects.order_by("-expire_date").first()
+            latest = (
+                Session.objects.filter(expire_date__gte=timezone.now())
+                .order_by("-expire_date")
+                .first()
+            )
             if latest is None:
                 raise CommandError(
-                    "No browser sessions found. Open the app once, then re-run with "
-                    "--latest-session."
+                    "No active browser sessions found. Open the app once, then re-run "
+                    "with --latest-session."
                 )
             session_key = latest.session_key
         else:
