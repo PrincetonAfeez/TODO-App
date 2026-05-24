@@ -1,3 +1,5 @@
+""" Apps configuration for the project """
+
 from django.apps import AppConfig
 
 
