@@ -1,3 +1,5 @@
+""" Middleware for the project """
+
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.utils import timezone
