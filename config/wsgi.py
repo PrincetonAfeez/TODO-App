@@ -1,3 +1,5 @@
+""" WSGI configuration for the project """
+
 import os
 from pathlib import Path
 
