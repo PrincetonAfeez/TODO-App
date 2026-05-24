@@ -1,4 +1,4 @@
-"""Tests for recurrence template helpers in ``task_extras``."""
+""" Tests for recurrence template helpers in task_extras """
 
 from __future__ import annotations
 
