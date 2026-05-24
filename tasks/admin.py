@@ -1,3 +1,5 @@
+""" Admin configuration for the project """
+
 from django.contrib import admin
 
 from .models import Recurrence, Task, TaskEvent, TaskList
