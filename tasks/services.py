@@ -1,3 +1,5 @@
+""" Services for the project """
+
 from __future__ import annotations
 
 import calendar
@@ -28,6 +30,21 @@ RECURRENCE_INTERVAL_MAX = 52
 
 class RestoreError(ValueError):
     """Raised when a task cannot be restored (e.g., its parent is still deleted)."""
+
+
+class AlreadyActiveError(ValueError):
+    """Raised when restore is requested on a task that is not deleted."""
+
+
+class TaskDeletedError(ValueError):
+    """Raised when a mutation is attempted on a soft-deleted task."""
+
+
+def _reject_deleted_task(task: Task, *, message: str | None = None) -> None:
+    if task.deleted_at:
+        raise TaskDeletedError(
+            message or "Deleted tasks cannot be modified; restore first."
+        )
 
 
 @dataclass(frozen=True)
@@ -64,6 +81,8 @@ def create_task(
     priority: str = TaskPriority.MEDIUM,
     parent: Task | None = None,
 ) -> Task:
+    if parent is not None and parent.deleted_at:
+        raise TaskDeletedError("Restore the parent task before adding subtasks.")
     task = Task.objects.create(
         task_list=task_list,
         parent=parent,
@@ -85,6 +104,7 @@ def update_task(
     due_date,
     priority: str,
 ) -> Task:
+    _reject_deleted_task(task)
     task.title = title.strip()
     task.notes = notes.strip()
     task.due_date = due_date
@@ -124,6 +144,8 @@ def soft_delete_task(task: Task) -> None:
 
 @transaction.atomic
 def restore_task(task: Task) -> Task:
+    if task.deleted_at is None:
+        raise AlreadyActiveError("Task is already active.")
     if (
         task.parent_id is not None
         and Task.objects.all_with_deleted()
@@ -202,6 +224,7 @@ def set_recurrence(
     day_of_month: int | None = None,
     end_date=None,
 ) -> Recurrence:
+    _reject_deleted_task(task)
     # Audit: recurrence add/edit shows up in TaskEvent as an `updated`
     # action with `recurrence_id` in `changes` (emitted by the post_save
     # signal). We intentionally do not add `recurrence_set`/`recurrence_cleared`
@@ -235,6 +258,7 @@ def set_recurrence(
 
 @transaction.atomic
 def clear_recurrence(task: Task) -> None:
+    _reject_deleted_task(task)
     recurrence = task.recurrence
     if not recurrence:
         return
