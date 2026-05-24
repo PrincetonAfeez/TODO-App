@@ -1,3 +1,5 @@
+""" End-to-end tests for the project """
+
 import re
 
 import pytest
