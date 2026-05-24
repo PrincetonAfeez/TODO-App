@@ -1,3 +1,5 @@
+""" URLs for the project """
+
 from django.urls import path
 
 from . import views
