@@ -1,4 +1,4 @@
-"""Property-based tests for recurrence date math in tasks/services.py."""
+""" Property-based tests for recurrence date math in tasks/services.py """
 
 from __future__ import annotations
 
